@@ -1,0 +1,37 @@
+[
+    {
+        "model-name": "CbtExam",
+        "resource-file": "cbt_exams.json",
+        "table-name": "cbt_exams"
+    },
+    {
+        "model-name": "CbtExamCandidate",
+        "resource-file": "cbt_exam_candidates.json",
+        "table-name": "cbt_exam_candidates"
+    },
+    {
+        "model-name": "CbtExamQuestion",
+        "resource-file": "cbt_exam_questions.json",
+        "table-name": "cbt_exam_questions"
+    },
+    {
+        "model-name": "CbtOption",
+        "resource-file": "cbt_options.json",
+        "table-name": "cbt_options"
+    },
+    {
+        "model-name": "CbtQuestion",
+        "resource-file": "cbt_questions.json",
+        "table-name": "cbt_questions"
+    },
+    {
+        "model-name": "CbtQuestionResponse",
+        "resource-file": "cbt_question_responses.json",
+        "table-name": "cbt_question_responses"
+    },
+    {
+        "model-name": "CbtSubject",
+        "resource-file": "cbt_subjects.json",
+        "table-name": "cbt_subjects"
+    }
+]

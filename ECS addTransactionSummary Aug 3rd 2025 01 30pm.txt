@@ -1,0 +1,51 @@
+public function addTransactionSummary(EcsClient $client, $amount, $summarisable = null, $type = 'credit', $source = null, $details = null)
+    {
+        $summary = new EcsClientAccountSummary();
+        if(isset($summarisable)) {
+            $summary->summarisable_id = $summarisable->id;
+            $summary->summarisable_type = get_class($summarisable);
+        }
+        if($type == 'credit'){
+            $summary->credit_amount = $amount;
+            $working_amount = $amount;
+        } else {
+            $summary->debit_amount = $amount;
+            $working_amount = -1 * $amount;
+        }
+
+        if($summary->summarisable_type == "App\Models\EcsRefund"){
+            $summary->details = $details ?? 'REFUND: '. $summarisable->first_name;
+            $summary->ticket_number = $summarisable->ticket_number;
+            $summary->source = $source ?? 'FLIGHT TICKET BOOKING';
+        }elseif($summary->summarisable_type == "App\Models\EcsFlightTransaction"){
+            $summary->details = $details ?? 'REFUND: '. $summarisable->first_name;
+            $summary->ticket_number = $summarisable->ticket_number;
+            $summary->source = $source ?? 'REFUND';
+        }elseif($summary->summarisable_type == "App\Models\EcsClient"){
+            $summary->details = $details ?? 'Account Initialization';
+            $summary->source = $source ?? 'ACCOUNT OPENING';
+        }elseif($summary->summarisable_type == "App\Models\EcsClientAccountSummary" || $source == 'summary'){
+            $summary->details = $details ?? 'Manual Summary Creation';
+            $summary->source = $source ?? 'Balance Transaction';
+        }else{
+            $summary->source = $source;
+        }
+
+        if(isset($summarisable)){
+            if(isset($summarisable->for_date)){
+                $summary->for_date = $summarisable->for_date;
+            }else{
+                $summary->for_date = $summarisable->for_date->toDateString();
+            }
+        }else{
+            $summary->for_date = $for_date ?? now(); // TODO: $for_date is not defined anywhere: Sept. 3rd, 2025
+        }
+
+        $new_balance = $client->current_balance + $working_amount;
+        $summary->balance = $new_balance;
+        $summary->client_id = $client->id;
+        $summary->agent_user_id = auth()->id();
+        $summary->save();
+        $client->current_balance = $new_balance;
+        $client->save();
+    }

@@ -1,0 +1,13 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class MicrosoftUser extends Model
+{
+    public function staff_member()
+    {
+        return $this->belongsTo(StaffMember::class, 'staff_ara_id', 'staff_ara_id');
+    }
+}

@@ -1,0 +1,544 @@
+<?php
+
+
+namespace App\Http\Composers;
+
+
+use App\Models\StaffMember;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+
+class MenuComposer
+{
+    /**
+     * Bind data to the view.
+     *
+     * @param View $view
+     */
+    public function compose(View $view)
+    {
+        if(Auth::check()) {
+            $user = auth()->user();
+            $staff_member = $user->staff_member;
+
+            $menus = array();
+            $menu_group = [];
+
+//            if(config('app.env') == 'local') {
+            if(1 < 0) {
+                if ($user->hasRole('call center admin') || $user->hasRole('call center agent') || $user->isAdmin()) {
+                    unset($menu_group);
+                    unset($dept_menu);
+                    $dept_menu = array();
+                    if ($user->hasRole('call center admin') || $user->isAdmin()) {
+                        array_push($dept_menu, [
+                            'title' => 'CRM Dashboard',
+//                        'link' => route('frontend.call_center.index'),
+                            'link' => "https://lookerstudio.google.com/embed/reporting/83e0e8da-e297-4197-ac93-88989a23224e/page/TV4ED",
+                            'icon' => 'fas fa-tachometer-alt'
+                        ]);
+                    }
+
+                    if ($user->can('create call log')) {
+                        array_push($dept_menu, [
+                            'title' => 'Enter A Log',
+                            'link' => route('frontend.call_center.create.log'),
+                            'icon' => 'far fa-list-alt'
+                        ]);
+                    }
+
+                    array_push($dept_menu, [
+                        'title' => 'View Logs',
+                        'link' => route('frontend.call_center.logs'),
+                        'icon' => 'fas fa-list-ol'
+                    ]);
+
+                    $menu_group = [
+                        'title' => 'ArikCRM',
+                        'link' => '#call-center',
+                        'icon' => 'fas fa-headset',
+                        'group' => 'call-center',
+                        'links' => $dept_menu
+                    ];
+
+                    array_push($menus, $menu_group);
+                }
+
+
+//              HMO start
+                unset($menu_group);
+                unset($dept_menu);
+                $dept_menu = array();
+                if ($user->can('update other staff info')) {
+                    array_push($dept_menu, [
+                        'title' => 'Staff Members List',
+                        'link' => route('frontend.hmo.staff_member.index'),
+                        'icon' => 'far fa-list-alt'
+                    ]);
+
+                    array_push($dept_menu, [
+                        'title' => 'Family Members List',
+                        'link' => route('frontend.hmo.family_members'),
+                        'icon' => 'far fa-list-alt'
+                    ]);
+                }
+
+                if ($staff_member) {
+                    array_push($dept_menu, [
+                        'title' => 'My Data',
+                        'link' => route('frontend.hmo.show.staff_member', $staff_member->staff_ara_id),
+                        'icon' => 'fas fa-list-ol'
+                    ]);
+                }
+
+                $menu_group = [
+                    'title' => 'ArikHMO',
+                    'link' => '#hmo',
+                    'icon' => 'fas fa-clinic-medical',
+                    'group' => 'hmo',
+                    'links' => $dept_menu
+                ];
+
+                array_push($menus, $menu_group);
+//                HMO end
+
+
+//              Staff Travel start
+                unset($menu_group);
+                unset($dept_menu);
+                $dept_menu = array();
+                if ($user->can('manage staff travel portal')) {
+                    array_push($dept_menu, [
+                        'title' => 'Dashboard',
+                        'link' => route('frontend.staff_travel.index'),
+                        'icon' => 'fas fa-tachometer-alt'
+                    ]);
+
+                    array_push($dept_menu, [
+                        'title' => 'Bookings',
+                        'link' => route('frontend.staff_travel.bookings'),
+                        'icon' => 'far fa-list-alt'
+                    ]);
+                }
+
+                if ($staff_member) {
+                    array_push($dept_menu, [
+                        'title' => 'Staff Travel Portal',
+                        'link' => route('frontend.staff_travel.staff_travel_portal'),
+                        'icon' => 'fas fa-plane'
+                    ]);
+
+                    array_push($dept_menu, [
+                        'title' => 'Make Booking',
+                        'link' => route('frontend.staff_travel.make_booking'),
+                        'icon' => 'fas fa-book-open'
+                    ]);
+
+                    array_push($dept_menu, [
+                        'title' => 'My Bookings',
+                        'link' => route('frontend.staff_travel.my_bookings'),
+                        'icon' => 'fas fa-plane-departure'
+                    ]);
+                }
+
+                $menu_group = [
+                    'title' => 'Staff Travel',
+                    'link' => '#hmo',
+                    'icon' => 'fas fa-plane',
+                    'group' => 'hmo',
+                    'links' => $dept_menu
+                ];
+
+                array_push($menus, $menu_group);
+//                Staff Travel end
+            } // env check
+
+
+//                Staff Attendance Start
+            unset($menu_group);
+            unset($dept_menu);
+            $dept_menu = array();
+            if ($user->can('manage all staff attendance')) {
+                array_push($dept_menu, [
+                    'title' => 'Backend',
+                    'link' => route('frontend.attendance.multiple.staff.attendance'),
+                    'icon' => 'fas fa-tachometer-alt'
+                ]);
+
+                if(1 < 0) {
+                    array_push($dept_menu, [
+                        'title' => 'Holidays',
+                        'link' => route('frontend.attendance.holidays.all'),
+                        'icon' => 'fas fa-list-alt'
+                    ]);
+                }
+
+//                array_push($dept_menu, [
+//                    'title' => 'Attendance Test',
+//                    'link' => route('frontend.attendance.view.individual.staff').'?staff_ara_id=6575',
+//                    'icon' => 'far fa-list-alt'
+//                ]);
+            }
+
+            if( $staff_member) {
+                array_push($dept_menu, [
+                    'title' => 'My Attendance',
+                    'link' => route('frontend.attendance.my.attendance').'?staff_ara_id='.$staff_member->staff_ara_id,
+                    'icon' => 'far fa-list-alt'
+                ]);
+
+                $count_underlings = StaffMember::where('manager_ara_id', $staff_member->staff_ara_id)->count();
+                if ($count_underlings) {
+                    array_push($dept_menu, [
+                        'title' => 'Managed Staff',
+                        'link' => route('frontend.attendance.managed.staff'),
+                        'icon' => 'fas fa-users'
+                    ]);
+                    array_push($dept_menu, [
+                        'title' => 'Created Authorizations',
+                        'link' => route('frontend.attendance.managed.authorizations'),
+                        'icon' => 'fas fa-list-alt'
+                    ]);
+                    array_push($dept_menu, [
+                        'title' => 'Add Authorization',
+                        'link' => route('frontend.attendance.create.manager.authorization'),
+                        'icon' => 'fas fa-signature'
+                    ]);
+                }
+            }
+
+            if($dept_menu) {
+                $menu_group = [
+                    'title' => 'Staff Attendance',
+                    'link' => '#attendance',
+                    'icon' => 'fas fa-check',
+                    'group' => 'attendance',
+                    'links' => $dept_menu
+                ];
+
+                array_push($menus, $menu_group);
+            }
+//                Staff Attendance End
+
+
+
+//              Pilot eLibrary start
+            if ($user->can('view Q400 PDFs') || $user->can('view 737 PDFs')) {
+                unset($menu_group);
+                unset($dept_menu);
+                $dept_menu = array();
+
+                if ($user->can('view Q400 PDFs')) {
+                    array_push($dept_menu, [
+                        'title' => 'Q400 Files',
+                        'link' => route('frontend.pilotLibrary.index').'?fleet=Q400',
+                        'icon' => 'fas fa-list-alt'
+                    ]);
+                }
+
+                if ($user->can('view 737 PDFs')) {
+                    array_push($dept_menu, [
+                        'title' => '737 Files',
+                        'link' => route('frontend.pilotLibrary.index').'?fleet=737',
+                        'icon' => 'fas fa-list-alt'
+                    ]);
+                }
+
+                if ($user->can('manage pilot elibrary')) {
+                    array_push($dept_menu, [
+                        'title' => 'Add Document',
+                        'link' => route('frontend.pilotLibrary.create'),
+                        'icon' => 'far fa-list-alt'
+                    ]);
+                }
+
+
+                $menu_group = [
+                    'title' => 'Flight Crew Documents',
+                    'link' => '#hmo',
+                    'icon' => 'fas fa-d',
+                    'group' => 'flight_crew',
+                    'links' => $dept_menu
+                ];
+
+                array_push($menus, $menu_group);
+            }
+//                Pilot eLibrary end
+
+
+//              Tour Operations start
+            if ($user->can('make tour bookings')) {
+                unset($menu_group);
+                unset($dept_menu);
+                $dept_menu = array();
+
+                array_push($dept_menu, [
+                    'title' => 'Passengers',
+                    'link' => route('frontend.tour_operations.passengers.list'),
+                    'icon' => 'fas fa-list-alt'
+                ]);
+
+//                array_push($dept_menu, [
+//                    'title' => 'My Opened Tabs',
+//                    'link' => route('frontend.tour_operations.passengers.my.opened.list'),
+//                    'icon' => 'fas fa-list-alt'
+//                ]);
+
+                array_push($dept_menu, [
+                    'title' => 'Completed Bookings',
+                    'link' => route('frontend.tour_operations.passengers.completed.bookings'),
+                    'icon' => 'fas fa-list-alt'
+                ]);
+
+                if($user->can('view tour booking performance')) {
+                    array_push($dept_menu, [
+                        'title' => 'TROs Management',
+                        'link' => route('frontend.tour_operations.tros.index'),
+                        'icon' => 'fas fa-users'
+                    ]);
+                }
+
+                $menu_group = [
+                    'title' => 'Tour Operations',
+                    'link' => '#tour-operations',
+                    'icon' => 'fas fa-plane-up',
+                    'group' => 'tour_operations',
+                    'links' => $dept_menu
+                ];
+
+                array_push($menus, $menu_group);
+            }
+//                Tour Operations end
+
+
+//              IT Assets start
+            if ($user->can('manage IT assets')) {
+                unset($menu_group);
+                unset($dept_menu);
+                $dept_menu = array();
+
+                array_push($dept_menu, [
+                    'title' => 'IT Assets Dashboard',
+                    'link' => route('frontend.it_assets.dashboard'),
+                    'icon' => 'fas fa-list-alt'
+                ]);
+
+                array_push($dept_menu, [
+                    'title' => 'All IT Assets',
+                    'link' => route('frontend.it_assets.list'),
+                    'icon' => 'fas fa-list-alt'
+                ]);
+
+                array_push($dept_menu, [
+                    'title' => 'Register IT Asset',
+                    'link' => route('frontend.it_assets.create'),
+                    'icon' => 'fas fa-laptop-file'
+                ]);
+
+                array_push($dept_menu, [
+                    'title' => 'Staff Assets Count',
+                    'link' => route('frontend.it_assets.assetsByStaff'),
+                    'icon' => 'fas fa-list-alt'
+                ]);
+
+
+
+                $menu_group = [
+                    'title' => 'IT Assets',
+                    'link' => '#it-assets',
+                    'icon' => 'fas fa-computer',
+                    'group' => 'it_assets',
+                    'links' => $dept_menu
+                ];
+
+                array_push($menus, $menu_group);
+            }
+//                IT Assets end
+
+
+            // *******
+
+            if($user->isAdmin()){
+                array_push($menus, [
+                    'title' => 'Admin Dashboard',
+                    'link' => route('admin.dashboard'),
+                    'icon' => 'fas fa-tachometer-alt',
+                    'sidebar_only' => true
+                ]);
+            }
+
+            // Staff Management start
+            unset($menu_group);
+            unset($dept_menu);
+            $dept_menu = array();
+            if($user->can('manage own unit info') || $user->can('update other staff info')){
+                array_push($dept_menu, [
+                    'title' => 'Staff Members Profiles',
+                    'link' => route('frontend.user.profiles'),
+                    'icon' => 'fas fa-address-card',
+                ]);
+
+                array_push($dept_menu, [
+                    'title' => 'Add Staff Member',
+                    'link' => route('frontend.staff_info_management.createStaffForm'),
+                    'icon' => 'fas fa-user-plus',
+                ]);
+
+                if($user->can('edit staff email')) {
+                    array_push($dept_menu, [
+                        'title' => 'Staff Members\' Emails',
+                        'link' => route('frontend.staff_info_management.emailFix'),
+                        'icon' => 'fas fa-envelope',
+                        'sidebar_only' => false
+                    ]);
+                }
+
+
+                $menu_group = [
+                    'title' => 'Staff Management',
+                    'link' => '#staff-members-mgt',
+                    'icon' => 'fas fa-users',
+                    'group' => 'staff_members_mgt',
+                    'links' => $dept_menu
+                ];
+
+                array_push($menus, $menu_group);
+            }
+            // Staff Management end
+
+
+            if(1 < 0) {
+                // Vacancies Backend start
+                unset($menu_group);
+                unset($dept_menu);
+                $dept_menu = array();
+                if($user->can('update other staff info')){
+                    array_push($dept_menu, [
+                        'title' => 'Vacancies',
+                        'link' => route('frontend.vacancies.backend.index'),
+                        'icon' => 'fas fa-list-alt',
+                    ]);
+
+                    $menu_group = [
+                        'title' => 'Vacancies Backend',
+                        'link' => '#vacancies-backend',
+                        'icon' => 'fas fa-briefcase',
+                        'group' => 'vacancies_backend',
+                        'links' => $dept_menu
+                    ];
+
+                    array_push($menus, $menu_group);
+                }
+                // Vacancies Backend end
+            
+
+            // Recruitments start
+            unset($menu_group);
+            unset($dept_menu);
+            $dept_menu = array();
+            if($staff_member){
+                array_push($dept_menu, [
+                    'title' => 'Vacancies',
+                    'link' => route('frontend.job_applications.vacancies'),
+                    'icon' => 'fas fa-list-alt',
+                ]);
+
+                $menu_group = [
+                    'title' => 'Recruitments',
+                    'link' => '#recruitments',
+                    'icon' => 'fas fa-briefcase',
+                    'group' => 'recruitments',
+                    'links' => $dept_menu
+                ];
+
+                array_push($menus, $menu_group);
+            }
+            // Recruitments end
+        }
+
+            if( $staff_member) {
+                array_push($menus, [
+                    'title' => 'ID Card/Staff Info Update',
+                    'link' => route('frontend.user.profile.editIDcard').'?staff_ara_id='.$staff_member->staff_ara_id,
+                    'icon' => 'fas fa-address-card',
+                    'sidebar_only' => false
+                ]);
+
+//                array_push($menus, [
+//                    'title' => 'Condolences',
+//                    'link' => route('frontend.occasions.show', 'francis-okafor-1'),
+//                    'icon' => 'fas fa-pen-alt',
+//                    'sidebar_only' => false
+//                ]);
+
+//                array_push($menus, [
+//                    'title' => 'Change Staff Travel Password',
+//                    'link' => route('frontend.staff_travel.reset_password_email'),
+//                    'icon' => 'fas fa-lock',
+//                    'sidebar_only' => false
+//                ]);
+
+                if($user->can('view workflows')){
+                    array_push($menus, [
+                        'title' => 'Workflow Demo',
+                        'link' => route('frontend.work_flows.workflow.index'),
+                        'icon' => 'fas fa-address-card',
+                        'sidebar_only' => false
+                    ]);
+                }
+
+            }
+
+            if($user->can('enter logkeeps')){
+                array_push($menus, [
+                    'title' => 'ERP-CMC Logkeeper',
+                    'link' => route('frontend.log_keeping.erps'),
+                    'icon' => 'fas fa-list-alt',
+                    'sidebar_only' => false
+                ]);
+            }
+
+            // ServiceNow Start
+            unset($menu_group);
+            unset($dept_menu);
+            $dept_menu = array();
+            if($user->can('handle service now tickets')){
+                array_push($dept_menu, [
+                    'title' => 'Tickets',
+                    'link' => route('frontend.service_now.tickets.index'),
+                    'icon' => 'fas fa-list-alt',
+                ]);
+
+                array_push($dept_menu, [
+                    'title' => 'Add Ticket',
+                    'link' => route('frontend.service_now.tickets.create'),
+                    'icon' => 'fas fa-plus',
+                ]);
+
+                $menu_group = [
+                    'title' => 'Service Now',
+                    'link' => '#service_now',
+                    'icon' => 'fas fa-briefcase',
+                    'group' => 'service_now',
+                    'links' => $dept_menu
+                ];
+
+                array_push($menus, $menu_group);
+            }
+            // ServiceNow End
+
+            array_push($menus, [
+                'title' => 'Logout',
+                'link' => route('frontend.auth.logout'),
+                'icon' => 'fas fa-sign-out-alt',
+                'sidebar_only' => true
+            ]);
+
+
+        }else{
+            $menus = [];
+        }
+
+        $view->with('menus', $menus);
+    }
+}

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<chartdata>
+<col>
+<source>ADatabase</source>
+<ssl/>
+<servername>localhost</servername>
+<username>root</username>
+<password/>
+<dbname>arik_web_portals</dbname>
+<dbconnected>1</dbconnected>
+<sql/><type/>
+<xaxis/><yaxis/>
+<xmodel/>
+<xsort/>
+<ymodel/>
+<ysort/>
+<size/><text/>
+<maptype/>
+<title/><orientation/><filter/><dropdown/><legposition/><name/><xaxistitle/><yaxistitle/><height/><width/><datalabel/><showgrid/><showline/><tracename/><yntitle/>
+<rdbms>mysql</rdbms>
+<file/>
+<json/>
+<refresh/>
+<streaming/>
+</col>
+<showhidefilter/>
+<col><source>ADatabase</source><rdbms>mysql</rdbms><servername>localhost</servername><ssl></ssl><username>root</username><password></password><dbname>arik_web_portals</dbname><dbconnected>1</dbconnected><file></file></col></chartdata>

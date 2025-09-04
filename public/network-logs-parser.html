@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outage Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+        .info-card {
+            margin-bottom: 20px;
+        }
+        .file-input {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Outage Report Generator</h1>
+    <div class="file-input">
+        <label for="fileInput" class="form-label">Upload Log File</label>
+        <input type="file" class="form-control" id="fileInput">
+    </div>
+    <div id="loadingSpinner" class="d-flex justify-content-center align-items-center d-none" style="height: 100px;">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <div class="row" id="outageSummary">
+        <!-- Info Cards will be dynamically inserted here -->
+    </div>
+
+    <h2>Outage Details</h2>
+    <table class="table table-bordered" id="outageTable">
+        <thead>
+        <tr>
+            <th>From Time</th>
+            <th>To Time</th>
+            <th>Provider</th>
+            <th>Duration (Seconds)</th>
+            <th>Duration (Minutes)</th>
+            <th>Duration (Hours)</th>
+            <th>Duration (Days)</th>
+            <th>IP Address</th>
+        </tr>
+        </thead>
+        <tbody id="outageTableBody">
+        <!-- Outage data will be inserted here -->
+        </tbody>
+    </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<!--<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.pdf.min.js"></script>-->
+
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    let logData = '';
+    const outages = {};
+
+    fileInput.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function () {
+            logData = reader.result;
+            processLogFile(logData);
+        };
+
+        reader.readAsText(file);
+    });
+
+    function processLogFile(data) {
+        document.getElementById('loadingSpinner').style.display = 'flex';
+
+        const lines = data.split('\n');
+        const outageEvents = [];
+        const activeOutages = {};
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1; // Get the current month (0-based, so add 1)
+
+
+        lines.forEach(line => {
+            const liveToDeadRegex = /Executing : <gateway:gw_live_to_dead> args : <{ "param": "([^"]+)",/;
+            const deadToLiveRegex = /Executing : <gateway:gw_dead_to_live> args : <{ "param": "([^"]+)",/;
+            const timestampRegex = /\b(\w+ \d+ \d+:\d+:\d+Z)\b/;
+            const ipRegex = /"ip": "([^"]+)"/;
+
+            const liveToDeadMatch = line.match(liveToDeadRegex);
+            const deadToLiveMatch = line.match(deadToLiveRegex);
+            const timestampMatch = line.match(timestampRegex);
+            const ipMatch = line.match(ipRegex);
+
+            if (timestampMatch) {
+                const logMonth = new Date(Date.parse(`2024 ${timestampMatch[1].replace('Z', '+0000')}`)).getMonth() + 1;
+                const logYear = logMonth > currentMonth ? currentYear - 1 : currentYear;
+
+                const timestamp = new Date(Date.parse(`${logYear} ${timestampMatch[1].replace('Z', '+0000')}`));
+                const ip = ipMatch ? ipMatch[1] : null;
+
+                if (liveToDeadMatch) {
+                    const provider = liveToDeadMatch[1];
+
+                    // Start a new outage event
+                    if (!activeOutages[provider]) {
+                        activeOutages[provider] = { timestamp, ip };
+                    }
+                }
+
+                if (deadToLiveMatch) {
+                    const provider = deadToLiveMatch[1];
+
+                    // Close the outage event for this provider
+                    if (activeOutages[provider]) {
+                        const startEvent = activeOutages[provider];
+                        const durationSeconds = (timestamp - startEvent.timestamp) / 1000;
+                        const durationMinutes = (durationSeconds / 60).toFixed(2);
+                        const durationHours = (durationMinutes / 60).toFixed(2);
+                        const durationDays = (durationHours / 24).toFixed(2);
+
+                        outageEvents.push({
+                            from_time: startEvent.timestamp,
+                            to_time: timestamp,
+                            provider: provider,
+                            duration_seconds: durationSeconds,
+                            duration_minutes: durationMinutes,
+                            duration_hours: durationHours,
+                            duration_days: durationDays,
+                            ip_address: startEvent.ip
+                        });
+
+                        // Update the total outage duration per provider, ensuring it's treated as a number
+                        if (!outages[provider]) outages[provider] = 0;
+                        outages[provider] += parseFloat(durationHours);
+
+                        delete activeOutages[provider]; // Remove the active outage for this provider
+                    }
+                }
+            }
+        });
+
+        generateOutageSummary(outages);
+        populateOutageTable(outageEvents);
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+
+    function generateOutageSummary(outages) {
+        const outageSummaryDiv = document.getElementById('outageSummary');
+        outageSummaryDiv.innerHTML = ''; // Clear existing cards
+
+        Object.keys(outages).forEach(provider => {
+            const hours = parseFloat(outages[provider]).toFixed(2); // Ensure it's treated as a number
+            const cardHtml = `
+            <div class="col-md-4">
+                <div class="card info-card">
+                    <div class="card-body">
+                        <h5 class="card-title">${provider}</h5>
+                        <p class="card-text">Total Outage Duration: ${hours} hours</p>
+                    </div>
+                </div>
+            </div>`;
+            outageSummaryDiv.innerHTML += cardHtml;
+        });
+    }
+
+    function populateOutageTable(outageEvents) {
+        const outageTableBody = document.getElementById('outageTableBody');
+        outageTableBody.innerHTML = ''; // Clear existing rows
+
+        outageEvents.forEach(event => {
+            const rowHtml = `
+            <tr>
+                <td>${event.from_time.toISOString()}</td>
+                <td>${event.to_time.toISOString()}</td>
+                <td>${event.provider}</td>
+                <td>${event.duration_seconds}</td>
+                <td>${event.duration_minutes}</td>
+                <td>${event.duration_hours}</td>
+                <td>${event.duration_days}</td>
+                <td>${event.ip_address || 'N/A'}</td>
+            </tr>`;
+            outageTableBody.innerHTML += rowHtml;
+        });
+
+        // Initialize DataTables with export buttons
+        $('#outageTable').DataTable({
+            destroy: true,  // Ensures table is re-initialized after every upload
+            dom: 'Bfrtip',  // Add export buttons
+            buttons: [
+                'copy', 'csv', 'excel', 'print'
+            ],
+            order: [],
+            responsive: true
+        });
+    }
+
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

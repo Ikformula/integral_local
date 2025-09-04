@@ -1,0 +1,54 @@
+@extends('frontend.layouts.app')
+
+@section('content')
+
+<section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+    <div class="card text-bg-theme">
+
+         <div class="card-header d-flex justify-content-between align-items-center p-3">
+            <h4 class="m-0">Create New CBT Question Response</h4>
+            <div>
+                <a href="{{ route('cbt_question_responses.cbt_question_response.index') }}" class="btn btn-primary" title="Show All CBT Question Response">
+                    <span class="fa-solid fa-table-list" aria-hidden="true"></span>
+                </a>
+            </div>
+        </div>
+
+
+        <div class="card-body">
+
+            @if ($errors->any())
+                <div class="alert alert-danger" role="alert">
+                    <ul class="list-unstyled mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form method="POST" class="needs-validation" novalidate action="{{ route('cbt_question_responses.cbt_question_response.store') }}" accept-charset="UTF-8" id="create_cbt_question_response_form" name="create_cbt_question_response_form" >
+            {{ csrf_field() }}
+            @include ('cbt_question_responses.form', [
+                                        'cbtQuestionResponse' => null,
+                                      ])
+
+                <div class="col-lg-10 col-xl-9 offset-lg-2 offset-xl-3">
+                    <input class="btn btn-primary" type="submit" value="Add">
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+@endsection
+
+
