@@ -8,14 +8,14 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.2/css/dataTables.dateTime.min.css">
 @endpush
 
-@section('title', 'ECS Booking List')
+@section('title', 'ECS Requests List')
 
 @section('content')
     <div class="container-fluid">
         @if(!$logged_in_user->isEcsClient)
         <div class="row mb-3">
             <div class="col-12">
-                <a href="{{ route('frontend.ecs_bookings.create') }}" class="btn btn-primary">Add New Booking</a>
+                <a href="{{ route('frontend.ecs_bookings.create') }}" class="btn btn-primary">Add New Request</a>
             </div>
         </div>
         @endif
@@ -23,7 +23,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">ECS Booking List</h3>
+                        <h3 class="card-title">ECS Requests List</h3>
                     </div>
                     <div class="card-body">
                         <table class="table table-bordered w-100">
@@ -55,7 +55,7 @@
                                     <td>{{ $item->penalties }}</td>
                                     <td>{{ number_format($item->ticket_fare) }}</td>
                                     <td>{!! $item->remarks !!}</td>
-                                    <td>{{ $item->for_date }}</td>
+                                    <td>{{ $item->for_date->toDateString() }}</td>
 
                                     @if(!$logged_in_user->isEcsClient)
                                     <td>{{ $item->agent_user_idRelation->full_name }}</td>

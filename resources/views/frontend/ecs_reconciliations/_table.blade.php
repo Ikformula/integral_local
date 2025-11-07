@@ -16,7 +16,7 @@
     @foreach($items as $key => $item)
         <tr>
             <td>{{ $key + 1 }}</td>
-            <td>{{ $item->for_date }}</td>
+            <td>{{ $item->for_date->toDateString() }}</td>
             <td>{{ number_format($item->ecs_sales_amount) }}</td>
             <td>{{ number_format($item->ibe_sales_amount) }}</td>
             <td>{{ number_format($item->amounts_difference) }}</td>

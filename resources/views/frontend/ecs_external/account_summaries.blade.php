@@ -56,6 +56,7 @@
             var table = new DataTable('.table', {
                 "paging": false,
                 scrollY: 465,
+                sort: false,
                 layout: {
                     top: {
                         searchBuilder: { }

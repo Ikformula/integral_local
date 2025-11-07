@@ -42,6 +42,16 @@ class EcsClientAccountSummary extends Model
         return null;
     }
 
+    public function ticket()
+    {
+//        $ticket = EcsFlightTransaction::where('ticket_number', $this->ticket_number)->first();
+        $ticket = EcsFlightTransaction::find($this->summarisable_id);
+        if ($ticket)
+            return $ticket;
+
+        return null;
+    }
+
     public function agent()
     {
         return $this->belongsTo(User::class, 'agent_user_id');

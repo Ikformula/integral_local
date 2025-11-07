@@ -22,10 +22,12 @@
         <th>Ticket Number</th>
         <th>For Date</th>
         <th>Details</th>
+        @if(1 < 0)
         <th>Status</th>
         <th>Status Change Date</th>
         @if($is_ecs_client)
         <th>Actions</th>
+            @endif
             @endif
     </tr>
     </thead>
@@ -48,12 +50,22 @@
             <td>{{ number_format($item->balance) }}</td>
             <td>
             @php
-                $booking_id = $item->bookingId();
+                $ticket = $item->ticket();
             @endphp
 
-                <a href="{{ !is_null($booking_id) ? route('frontend.ecs_bookings.show', $booking_id).'?ticket_number='.$item->ticket_number : '#' }}"  target="_blank">{{ $item->ticket_number }} @if(!is_null($booking_id))<i class="fa-solid fa-up-right-from-square"></i>@endif</a></td>
+                @if($ticket)
+                    @if(!$is_ecs_client)
+                <a href="{{ !is_null($ticket) ? route('frontend.ecs_flight_transactions.edit', $ticket->id) : 'javascript:void(0)' }}"  target="_blank">@if(!is_null($ticket)){{ $item->ticket_number }} <i class="fa-solid fa-up-right-from-square"></i>@endif</a>
+                    @else
+                        {{ $item->ticket_number }}
+                    @endif
+                @endif
+            </td>
             <td>{{ $item->for_date->toDateString() }}</td>
             <td>{{ $item->details }}</td>
+
+            @if(1 < 0)
+
             @php
                 $status_arr = [
 'colour' => 'secondary',
@@ -88,6 +100,7 @@ $status_arr = ['colour' => 'warning', 'text' => 'DISPUTED'];
                     </form>
                 @endif
             </td>
+            @endif
             @endif
         </tr>
 

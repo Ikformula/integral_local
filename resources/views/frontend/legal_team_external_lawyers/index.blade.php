@@ -33,6 +33,7 @@
                                 <th>Email</th>
                                 <th>Firm</th>
 {{--                                <th>Notes</th>--}}
+                                <th>Cases</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -45,6 +46,7 @@
 <td>{{ $item->user->email }}</td>
 <td>{{ $item->firm }}</td>
 {{--<td>{{ $item->notes }}</td>--}}
+                                    <td><a href="{{ route('frontend.legal_team_cases.index', ['l_id' => $item->id]) }}" class="btn btn-sm btn-primary">Cases</a></td>
 
             <td>
                                         <a href="{{ route('frontend.legal_team_external_lawyers.show', $item->id) }}" class="btn btn-sm btn-info">View</a>

@@ -30,8 +30,8 @@ class EcsClientAccountSummaryController extends Controller
     public function store(Request $request)
     {
         try {
-            $type = $request->amount < 0 ? 'debit' : 'credit';
-            $this->addTransactionSummary(EcsClient::find($request->client_id), $request->amount, null, $type, 'summary');
+            $type = $request->trx_type;
+            $this->addTransactionSummary(EcsClient::find($request->client_id), $request->amount, null, $type, 'summary', $request->details);
             return redirect()->back()
                 ->withFlashSuccess('Client Account Summary created successfully!');
         } catch (\Exception $e) {

@@ -13,9 +13,12 @@ class LegalTeamDocument extends Model
         'remarks',
         'user_id',
         'file_name',
+        'firm',
         'folder_id',
         'size_in_kilobytes',
-        'size_in_megabytes'
+        'size_in_megabytes',
+        'process_type',
+        'case_id'
     ];
 
     public function user_idRelation()

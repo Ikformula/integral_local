@@ -19,7 +19,7 @@ class EcsBookingController extends Controller
     public function create()
     {
         return view('frontend.ecs_bookings.client-selection')->with([
-           'clients' => EcsClient::all()
+            'clients' => EcsClient::all()
         ]);
     }
 
@@ -34,9 +34,9 @@ class EcsBookingController extends Controller
         try {
             $ecs_booking = EcsBooking::create($request->all());
 
-            if($request->filled('tax')){
-                foreach ($request->tax as $tax_name => $amount){
-                    if(!isset($amount))
+            if ($request->filled('tax')) {
+                foreach ($request->tax as $tax_name => $amount) {
+                    if (!isset($amount))
                         continue;
 
                     $booking_tax = new EcsBookingTax();
@@ -49,12 +49,13 @@ class EcsBookingController extends Controller
             }
 
             return redirect()->route('frontend.ecs_bookings.show', $ecs_booking->id)
-                ->withFlashSuccess('EcsBooking created successfully!');
+                ->withFlashSuccess('Request created successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->withErrors('Error creating EcsBooking: ' . $e->getMessage());
+                ->withErrors('Error creating Request: ' . $e->getMessage());
         }
     }
+
 
     public function show(EcsBooking $ecs_booking)
     {
@@ -77,7 +78,6 @@ class EcsBookingController extends Controller
                 ->withErrors('Error updating EcsBooking: ' . $e->getMessage());
         }
     }
-
 
 
     public function destroy(EcsBooking $item)

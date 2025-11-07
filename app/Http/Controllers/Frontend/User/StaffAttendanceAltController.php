@@ -28,7 +28,6 @@ class StaffAttendanceAltController extends Controller
         ]);
     }
 
-
     public function processDailySummary(Request $request, $date_to_check = null)
     {
         if($request->filled('date_to_process')){

@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Frontend\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Auth\User;
+use App\Models\LegalTeamDocument;
 use App\Models\LegalTeamExternalLawyer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LegalTeamExternalLawyerController extends Controller
 {
@@ -17,13 +19,19 @@ class LegalTeamExternalLawyerController extends Controller
 
     public function create()
     {
-        return view('frontend.legal_team_external_lawyers.create');
+        $firms = DB::table('legal_team_external_lawyers')
+        ->select('firm')
+        ->distinct()
+        ->pluck('firm');
+        return view('frontend.legal_team_external_lawyers.create', compact('firms'));
     }
 
     public function store(Request $request)
     {
         try {
-            LegalTeamExternalLawyer::create($request->all());
+            $lawyer = LegalTeamExternalLawyer::create($request->all());
+            $user = $lawyer->user;
+//            $user->give
             return redirect()->route('frontend.legal_team_external_lawyers.index')
                 ->withFlashSuccess('LegalTeamExternalLawyer created successfully!');
         } catch (\Exception $e) {

@@ -21,7 +21,7 @@
     </div>
 
     @for($i = 1; $i <= 9; $i++)
-        <div class="row bg-{{ $i % 2 == 0 ? 'light' : 'lighter-blue' }}">
+        <div class="row">
             <div class="col">
                 <div class="form-group">
                     <label>({{ $i }}). Name</label>
@@ -60,7 +60,7 @@
 
     <div class="form-group">
         <label for="for_date">For Date</label>
-        <input type="text" name="for_date" id="for_date" class="form-control" value="{{ now()->toDateString() }}" required>
+        <input type="date" name="for_date" id="for_date" class="form-control" value="{{ now()->toDateString() }}" required>
     </div>
 
     <div class="form-group">

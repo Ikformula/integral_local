@@ -43,6 +43,8 @@
                     <button type="submit" class="btn bg-maroon btn-block">Filter</button>
                 </div>
             </div>
+
+            @if(1 < 0)
             <div class="row">
                 <div class="col">
                     <div class="form-group">
@@ -77,6 +79,7 @@
                     </div>
                 </div>
             </div>
+                @endif
         </form>
     </div>
 </div>

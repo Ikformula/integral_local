@@ -23,13 +23,24 @@ class EcsReconciliationController extends Controller
     {
         try {
             $arr = $request->all();
-            $arr['difference'] = $request->ecs_sales_amount - $request->ibe_sales_amount;
-            EcsReconciliation::create($arr);
-            return redirect()->back()
-                ->withFlashSuccess('EcsReconciliation created successfully!');
+            $arr['amounts_difference'] = $request->ecs_sales_amount - $request->ibe_sales_amount;
+
+            $existing = EcsReconciliation::where('for_date', $request->for_date)
+                ->where('agent_user_id', $request->agent_user_id)
+                ->first();
+
+            if ($existing) {
+                $existing->update($arr);
+                return redirect()->back()
+                    ->withFlashSuccess('Reconciliation for this date and agent was already entered. Record updated instead.');
+            } else {
+                EcsReconciliation::create($arr);
+                return redirect()->back()
+                    ->withFlashSuccess('Reconciliation created successfully!');
+            }
         } catch (\Exception $e) {
             return redirect()->back()
-                ->withErrors('Error creating EcsReconciliation: ' . $e->getMessage());
+                ->withErrors('Error creating Reconciliation: ' . $e->getMessage());
         }
     }
 

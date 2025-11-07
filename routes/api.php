@@ -41,7 +41,7 @@ Route::get('getAttendanceDailySummariesApi', [\App\Http\Controllers\AttendanceSu
 Route::post('log-keeping', [LogkeepsController::class, 'store'])->name('store.logkeep');
 Route::post('store-email', [StaffManagementController::class, 'storeEmail'])->name('storeEmail');
 Route::post('store-ms-email', [MsMigrationResolutionController::class, 'storeEmail'])->name('storeMsEmail');
-Route::get('get-log-keeping-stream/{meeting}', [LogkeepsController::class, 'getNewLogs'])->name('get.logstream');
+Route::get('get-log-keeping-stream/{erp}', [LogkeepsController::class, 'getNewLogs'])->name('get.logstream');
 Route::post('email-api', [EmailSendingApiController::class, 'storeEmailRequest']);
 Route::post('save-field-data', [FlightEnvelopeController::class, 'saveFieldData'])->name('saveFieldData');
 Route::post('glitches/update-pnr', [TicketGlitchesController::class, 'updatePNR'])->name('glitches.updatePNR');

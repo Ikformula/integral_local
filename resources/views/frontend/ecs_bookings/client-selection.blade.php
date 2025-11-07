@@ -1,7 +1,7 @@
 <!-- resources/views/frontend/ecs_bookings/create.blade.php -->
 @extends('frontend.layouts.app')
 
-@section('title', 'Add New Booking')
+@section('title', 'Select Client')
 @push('after-styles')
     <link rel="stylesheet" href="{{ asset('adminlte3.2/plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet"
@@ -17,9 +17,7 @@
                     <h3 class="card-title">Select Client</h3>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('frontend.ecs_bookings.selectClient') }}" method="POST">
-                        @csrf
-
+                    <form action="{{ route('frontend.ecs_bookings.selectClient') }}" method="get">
                         <div class="form-group">
                             <label for="client_id">Client</label>
                             <select name="client_id" id="client_id" class="form-control" required>
@@ -53,7 +51,8 @@
 
     <script src="{{ asset('adminlte3.2/plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
-        $('.select2').select2({
+        $('select').select2({
             theme: 'bootstrap4'
         });
-    </script>@endpush
+    </script>
+@endpush

@@ -14,8 +14,9 @@
 <div class="container-fluid">
     <div class="row mb-3">
         <div class="col-12">
-            <button type="button" class="btn bg-navy" data-toggle="modal" data-target="#add-refunds-modal-Id">Add Refund</button>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add-group-refunds-modal-Id">Add Group Refunds</button>
+{{--            <button type="button" class="btn bg-navy" data-toggle="modal" data-target="#add-refunds-modal-Id">Add Refund</button>--}}
+{{--            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add-group-refunds-modal-Id">Add Refunds</button>--}}
+            <a href="{{ route('frontend.ecs_refunds.createGroupRefunds') }}" class="btn btn-primary">Add Refunds</a>
         </div>
     </div>
     <div class="row">

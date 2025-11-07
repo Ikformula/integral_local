@@ -10,7 +10,7 @@
 @section('title', 'Clients')
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <div class="row mb-3">
         <div class="col-12">
             <a href="{{ route('frontend.ecs_clients.create') }}" class="btn btn-primary">Add New Client</a>
@@ -23,7 +23,7 @@
                     <h3 class="card-title">Clients</h3>
                 </div>
                 <div class="card-body">
-                    <table class="table table-bordered">
+                    <table class="table table-bordered text-nowrap w-100">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -31,6 +31,7 @@
                                 <th>Current Balance</th>
                                 <th>Service Charge</th>
                                 <th>Deal Code</th>
+                                <th>Applicable Taxes</th>
                                 <th>Account Type</th>
                                 <th>Actions</th>
                             </tr>
@@ -43,6 +44,7 @@
                                     <td>{{ checkIntNumber($client->current_balance) }}</td>
                                     <td>{{ checkIntNumber($client->service_charge_amount) }}</td>
                                     <td>{{ $client->deal_code }}</td>
+                                    <td>@if($client->taxes() && count($client->taxes())) @forelse($client->taxes() as $tax) {{ $tax }}{{ !$loop->last ? ', ' : '' }} @empty - @endforelse @endif</td>
                                     <td>{{ $client->account_type }}</td>
                                     <td>
                                         <a href="{{ route('frontend.ecs_clients.show', $client->id) }}" class="btn btn-sm btn-info">View</a>

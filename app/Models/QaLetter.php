@@ -17,9 +17,15 @@ class QaLetter extends Model
         'category_id',
         'for_date',
         'status',
-        'status_last_changed'
+        'status_last_changed_at',
+        'updater_user_id',
+        'direction',
     ];
-    
+
+    protected $dates = [
+        'status_last_changed_at'
+    ];
+
     public function category_idRelation()
     {
         return $this->belongsTo(QaCategory::class, 'category_id');

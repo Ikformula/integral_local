@@ -509,9 +509,9 @@ class BusinessGoalsController extends Controller
         }
 
         if($field->unit == '%' || $field_id == 58){
-            $data_value['year'] = $sum_year/$count_year;
-            $data_value['quarter'] = $sum_quarter/$count_quarter;
-            $data_value['month'] = $sum_month/$count_month;
+            $data_value['year'] = $count_year != 0 ? $sum_year/$count_year : $sum_year;
+            $data_value['quarter'] = $count_quarter != 0 ? $sum_quarter/$count_quarter : $sum_quarter;
+            $data_value['month'] = $count_month != 0 ? $sum_month/$count_month : $sum_month;
         }else{
             $data_value['year'] = $sum_year;
             $data_value['quarter'] = $sum_quarter;
@@ -964,7 +964,7 @@ class BusinessGoalsController extends Controller
             if ($formField->form_type == 'text') {
                 $result[$fieldId] = [
                     'field' => $formField->label,
-                    'total' => $group->first()->data_value,
+                    'total' => $group->last()->data_value,
                 ];
                 continue;
             }

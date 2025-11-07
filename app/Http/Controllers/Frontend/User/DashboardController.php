@@ -20,6 +20,10 @@ class DashboardController extends Controller
         if($user->isEcsClient)
             return redirect()->route('frontend.ecs_client_portal.accountSummaries');
 
+        $lawyer = $user->lawyer;
+        if($lawyer)
+            return redirect()->route('frontend.external_lawyer.documents');
+
         return view('frontend.index');
     }
 

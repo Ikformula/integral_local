@@ -16,6 +16,14 @@
           <h3 class="card-title">Exchange Rates List</h3>
           <div class="card-tools">
           <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modalCreate-exchange_rates">Add New Exchange Rate</button>
+          @if($canRollover && $latest)
+            <form action="{{ route('frontend.exchange_rates.rollover') }}" method="POST" style="display:inline;">
+              @csrf
+              <button type="submit" class="btn btn-sm btn-warning" title="Rollover to next month">
+                Rollover to {{ $nextMonth }} {{ $nextYear }}
+              </button>
+            </form>
+          @endif
           </div>
         </div>
         <div class="card-body">

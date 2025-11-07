@@ -26,11 +26,11 @@ class MenuComposer
             $staff_member = $user->staff_member;
             $staff_ara_id = $staff_member ? $staff_member->staff_ara_id : null;
             $user_is_admin = $user->isAdmin();
-            $user_is_ecs_client = $user->isEcsClient ? $user->isEcsClient->count() : null;
+            $user_is_ecs_client = $user->isEcsClient ? $user->isEcsClient->count() : false;
             $menus = array();
             $menu_group = [];
 
-//            if(config('app.env') == 'local') {
+            //            if(config('app.env') == 'local') {
             if (1 < 0) {
                 if ($user->hasRole('call center admin') || $user->hasRole('call center agent') || $user_is_admin) {
                     unset($menu_group);
@@ -39,7 +39,7 @@ class MenuComposer
                     if ($user->hasRole('call center admin') || $user_is_admin) {
                         array_push($dept_menu, [
                             'title' => 'CRM Dashboard',
-//                        'link' => route('frontend.call_center.index'),
+                            //                        'link' => route('frontend.call_center.index'),
                             'link' => "https://lookerstudio.google.com/embed/reporting/83e0e8da-e297-4197-ac93-88989a23224e/page/TV4ED",
                             'icon' => 'fas fa-tachometer-alt'
                         ]);
@@ -71,7 +71,7 @@ class MenuComposer
                 }
 
 
-//              HMO start
+                //              HMO start
                 unset($menu_group);
                 unset($dept_menu);
                 $dept_menu = array();
@@ -106,12 +106,12 @@ class MenuComposer
                 ];
 
                 array_push($menus, $menu_group);
-//                HMO end
+                //                HMO end
             } // env check
 
 
-            if($user->hasRole('hr advisor') || $user_is_admin || (isset($staff_member) && ($staff_member->department_name == 'HR' || in_array($staff_ara_id, ['6878'])))) {
-//              Staff Travel start
+            if ($user->hasRole('hr advisor') || $user_is_admin || (isset($staff_member) && ($staff_member->department_name == 'HR' || in_array($staff_ara_id, ['6878'])))) {
+                //              Staff Travel start
                 // Staff Travel Management
                 unset($menu_group);
                 unset($dept_menu);
@@ -141,7 +141,7 @@ class MenuComposer
                         'icon' => 'far fa-list-alt'
                     ]);
 
-                    if($user->can('manage staff travel portal')) {
+                    if ($user->can('manage staff travel portal')) {
                         array_push($dept_menu, [
                             'title' => 'HR Settings',
                             'link' => route('frontend.staff_travel.stbHrMGT'),
@@ -199,12 +199,12 @@ class MenuComposer
                 }
 
 
-//                Staff Travel end
+                //                Staff Travel end
             } // HR testing check end
 
 
 
-//                Staff Attendance Start
+            //                Staff Attendance Start
             unset($menu_group);
             unset($dept_menu);
             $dept_menu = array();
@@ -229,11 +229,11 @@ class MenuComposer
                     ]);
                 }
 
-//                array_push($dept_menu, [
-//                    'title' => 'Attendance Test',
-//                    'link' => route('frontend.attendance.view.individual.staff').'?staff_ara_id=6575',
-//                    'icon' => 'far fa-list-alt'
-//                ]);
+                //                array_push($dept_menu, [
+                //                    'title' => 'Attendance Test',
+                //                    'link' => route('frontend.attendance.view.individual.staff').'?staff_ara_id=6575',
+                //                    'icon' => 'far fa-list-alt'
+                //                ]);
             }
 
             if ($staff_member) {
@@ -274,10 +274,10 @@ class MenuComposer
 
                 array_push($menus, $menu_group);
             }
-//                Staff Attendance End
+            //                Staff Attendance End
 
 
-//              Pilot eLibrary start
+            //              Pilot eLibrary start
             if ($user->can('view Q400 PDFs') || $user->can('view 737 PDFs')) {
                 unset($menu_group);
                 unset($dept_menu);
@@ -318,10 +318,10 @@ class MenuComposer
 
                 array_push($menus, $menu_group);
             }
-//                Pilot eLibrary end
+            //                Pilot eLibrary end
 
 
-//              Business Goals start
+            //              Business Goals start
             if ($user->can('manage business goals data')) {
                 unset($menu_group);
                 unset($dept_menu);
@@ -348,13 +348,13 @@ class MenuComposer
                             'icon' => 'fa fa-pen-alt'
                         ]);
 
-//                        if($user_is_admin){
+                        //                        if($user_is_admin){
                         array_push($dept_menu, [
                             'title' => 'Single Day Data Entry',
                             'link' => route('frontend.business_goals.add_single_day_report'),
                             'icon' => 'fa fa-pen-alt'
                         ]);
-//                        }
+                        //                        }
                     }
                 }
 
@@ -378,7 +378,6 @@ class MenuComposer
                         'link' => route('frontend.business_goals.single.daily.quadrant') . '?business_area_id=11',
                         'icon' => 'fa fa-plane-up'
                     ]);
-
                 }
 
                 $menu_group = [
@@ -391,10 +390,10 @@ class MenuComposer
 
                 array_push($menus, $menu_group);
             }
-//                Business Goals  end
+            //                Business Goals  end
 
 
-            if($user->can('can enter icu activities')) {
+            if ($user->can('can enter icu activities')) {
                 array_push($menus, [
                     'title' => 'ICU Activities',
                     'link' => route('frontend.icu_activities.index'),
@@ -408,11 +407,18 @@ class MenuComposer
                     'icon' => 'fas fa-list',
                     'sidebar_only' => false
                 ]);
-
             }
 
+            if (!$user_is_ecs_client && !$user->hasRole('external lawyer') && ($staff_member || $user_is_admin)) {
+                array_push($menus, [
+                    'title' => 'AVSEC Vehicle Registry',
+                    'link' => route('frontend.avsec_vehicles.index'),
+                    'icon' => 'fas fa-car',
+                    'sidebar_only' => false
+                ]);
+            }
 
-//              Tour Operations start
+            //              Tour Operations start
             if ($user->can('make tour bookings')) {
                 unset($menu_group);
                 unset($dept_menu);
@@ -424,11 +430,11 @@ class MenuComposer
                     'icon' => 'fas fa-list-alt'
                 ]);
 
-//                array_push($dept_menu, [
-//                    'title' => 'My Opened Tabs',
-//                    'link' => route('frontend.tour_operations.passengers.my.opened.list'),
-//                    'icon' => 'fas fa-list-alt'
-//                ]);
+                //                array_push($dept_menu, [
+                //                    'title' => 'My Opened Tabs',
+                //                    'link' => route('frontend.tour_operations.passengers.my.opened.list'),
+                //                    'icon' => 'fas fa-list-alt'
+                //                ]);
 
                 array_push($dept_menu, [
                     'title' => 'Completed Bookings',
@@ -454,10 +460,10 @@ class MenuComposer
 
                 array_push($menus, $menu_group);
             }
-//                Tour Operations end
+            //                Tour Operations end
 
 
-//              IT Assets start
+            //              IT Assets start
             if ($user->can('manage IT assets')) {
                 unset($menu_group);
                 unset($dept_menu);
@@ -498,7 +504,7 @@ class MenuComposer
 
                 array_push($menus, $menu_group);
             }
-//                IT Assets end
+            //                IT Assets end
 
 
             // ********* Network outage analysis tool Start
@@ -586,8 +592,7 @@ class MenuComposer
                 array_push($menus, $menu_group);
             }
             // Staff Management end
-
-            if(!$user_is_ecs_client) {
+            if (!$user_is_ecs_client && !$user->hasRole('external lawyer')) {
                 array_push($menus, [
                     'title' => 'CUG Line',
                     'link' => route('frontend.cug_lines.index'),
@@ -601,7 +606,7 @@ class MenuComposer
             unset($dept_menu);
             $dept_menu = array();
             if ($user->can('manage safety performance index') || $user->can('enter SPI data')) {
-                if($user_is_admin) {
+                if ($user_is_admin) {
                     array_push($dept_menu, [
                         'title' => 'Sectors Preview',
                         'link' => route('frontend.srb.sectors'),
@@ -610,7 +615,7 @@ class MenuComposer
                     ]);
                 }
 
-                if($user->can('manage safety performance index')) {
+                if ($user->can('manage safety performance index')) {
                     array_push($dept_menu, [
                         'title' => 'User Access',
                         'link' => route('frontend.safety_review.permissions.index'),
@@ -672,6 +677,13 @@ class MenuComposer
                     'sidebar_only' => false
                 ]);
 
+                array_push($dept_menu, [
+                    'title' => 'Categories',
+                    'link' => route('frontend.qa_categories.index'),
+                    'icon' => 'fas fa-list-alt',
+                    'sidebar_only' => false
+                ]);
+
                 $menu_group = [
                     'title' => 'QA Letters',
                     'link' => '#qa-letters',
@@ -721,7 +733,7 @@ class MenuComposer
                 ]);
             }
 
-            if(!$user_is_ecs_client) {
+            if (!$user_is_ecs_client && !$user->hasRole('external lawyer')) {
                 $all_vacancies_count = Vacancy::where('date_advertised', '<=', now())
                     ->where('date_of_closing', '>=', now())->count();
                 $menu_group = [
@@ -747,19 +759,19 @@ class MenuComposer
                     'sidebar_only' => false
                 ]);
 
-//                array_push($menus, [
-//                    'title' => 'Condolences',
-//                    'link' => route('frontend.occasions.show', 'francis-okafor-1'),
-//                    'icon' => 'fas fa-pen-alt',
-//                    'sidebar_only' => false
-//                ]);
+                //                array_push($menus, [
+                //                    'title' => 'Condolences',
+                //                    'link' => route('frontend.occasions.show', 'francis-okafor-1'),
+                //                    'icon' => 'fas fa-pen-alt',
+                //                    'sidebar_only' => false
+                //                ]);
 
-//                array_push($menus, [
-//                    'title' => 'Change Staff Travel Password',
-//                    'link' => route('frontend.staff_travel.reset_password_email'),
-//                    'icon' => 'fas fa-lock',
-//                    'sidebar_only' => false
-//                ]);
+                //                array_push($menus, [
+                //                    'title' => 'Change Staff Travel Password',
+                //                    'link' => route('frontend.staff_travel.reset_password_email'),
+                //                    'icon' => 'fas fa-lock',
+                //                    'sidebar_only' => false
+                //                ]);
 
                 if ($user->can('view workflows')) {
                     array_push($menus, [
@@ -769,7 +781,6 @@ class MenuComposer
                         'sidebar_only' => false
                     ]);
                 }
-
             }
 
             if ($user->can('enter logkeeps') || $user->can('view logstreams')) {
@@ -787,14 +798,20 @@ class MenuComposer
             unset($dept_menu);
             $dept_menu = array();
             if ($user->can('manage ecs processes') || $user->can('manage ecs client balances') || $user_is_admin) {
-                if($user->can('manage ecs processes')) {
+                if ($user->can('manage ecs processes')) {
                     array_push($dept_menu, [
                         'title' => 'Dashboard',
                         'link' => route('frontend.ecs.dashboard'),
                         'icon' => 'fas fa-qrcode',
                     ]);
 
-                    if($user->can('view ecs activity logs')) {
+                    array_push($dept_menu, [
+                        'title' => 'Manual Guide',
+                        'link' => route('frontend.ecsManual'),
+                        'icon' => 'fas fa-book',
+                    ]);
+
+                    if ($user->can('view ecs activity logs')) {
                         array_push($dept_menu, [
                             'title' => 'Manage Access',
                             'link' => route('frontend.ecs_portal_users.index'),
@@ -815,15 +832,61 @@ class MenuComposer
                     }
 
                     array_push($dept_menu, [
-                        'title' => 'Bookings',
-                        'link' => route('frontend.ecs_bookings.index'),
+                        'title' => 'Make Trx Request',
+                        'link' => route('frontend.ecs_bookings.create'),
                         'icon' => 'fas fa-ticket',
+                    ]);
+                    // ECS Transaction Request Menus
+                    array_push($dept_menu, [
+                        'title' => 'View Requests',
+                        'link' => route('frontend.ecs_flight_transactions.index', ['filter' => 'view']),
+                        'icon' => 'fas fa-eye',
+                    ]);
+                    array_push($dept_menu, [
+                        'title' => 'Refunds',
+                        'link' => route('frontend.ecs_flight_transactions.index', ['filter' => 'refunds']),
+                        'icon' => 'fas fa-rotate-left',
                     ]);
 
                     array_push($dept_menu, [
-                        'title' => 'Refunds',
-                        'link' => route('frontend.ecs_refunds.index'),
-                        'icon' => 'fas fa-list-alt',
+                        'title' => 'Add Refunds',
+                        'link' => route('frontend.ecs_refunds.createGroupRefunds'),
+                        'icon' => 'fas fa-circle-left',
+                    ]);
+
+//                    array_push($dept_menu, [
+//                        'title' => 'Push To Reconciliation',
+//                        'link' => route('frontend.ecs_flight_transactions.index', ['filter' => 'push_to_reconciliation']),
+//                        'icon' => 'fas fa-arrow-right-arrow-left',
+//                    ]);
+//                    array_push($dept_menu, [
+//                        'title' => 'Reverse Requests',
+//                        'link' => route('frontend.ecs_flight_transactions.index', ['filter' => 'reverse']),
+//                        'icon' => 'fas fa-undo',
+//                    ]);
+
+                    array_push($dept_menu, [
+                        'title' => 'Verify Requests',
+                        'link' => route('frontend.ecs_flight_transactions.index', ['filter' => 'verify']),
+                        'icon' => 'fas fa-user-check',
+                    ]);
+
+//                    array_push($dept_menu, [
+//                        'title' => 'Disapproved Requests',
+//                        'link' => route('frontend.ecs_flight_transactions.index', ['filter' => 'disapproved']),
+//                        'icon' => 'fas fa-ban',
+//                    ]);
+
+//                    array_push($dept_menu, [
+//                        'title' => 'Push To Client',
+//                        'link' => route('frontend.ecs_flight_transactions.index', ['filter' => 'push_to_client']),
+//                        'icon' => 'fas fa-user-plus',
+//                    ]);
+
+                    array_push($dept_menu, [
+                        'title' => 'Ticket Log',
+                        'link' => route('frontend.ecs_flight_transactions.ticketLogClientSelection'),
+                        'icon' => 'fas fa-rectangle-list',
                     ]);
 
                     array_push($dept_menu, [
@@ -835,7 +898,7 @@ class MenuComposer
                     array_push($dept_menu, [
                         'title' => 'Reconciliations',
                         'link' => route('frontend.ecs_reconciliations.index'),
-                        'icon' => 'fas fa-list-alt',
+                        'icon' => 'fas fa-trowel-bricks',
                     ]);
                 }
 
@@ -856,14 +919,26 @@ class MenuComposer
                 array_push($menus, $menu_group);
             }
 
-            if($user_is_ecs_client){
+            if ($user_is_ecs_client) {
                 array_push($menus, [
-                    'title' => 'ECS Client',
+                    'title' => 'ECS Account Summaries',
                     'link' => route('frontend.ecs_client_portal.accountSummaries'),
                     'icon' => 'fas fa-tachometer-alt',
                     'sidebar_only' => false
                 ]);
 
+                array_push($menus, [
+                    'title' => 'View Requests',
+                    'link' => route('frontend.ecs_client_portal.clientTrxs'),
+                    'icon' => 'fas fa-eye',
+                ]);
+
+                array_push($menus, [
+                    'title' => 'Ticket Log',
+                    'link' => route('frontend.ecs_client_portal.ticketLog'),
+                    'icon' => 'fas fa-rectangle-list',
+                    'sidebar_only' => false
+                ]);
                 array_push($menus, [
                     'title' => 'ECS Profile',
                     'link' => route('frontend.ecs_client_portal.clientProfile'),
@@ -871,36 +946,29 @@ class MenuComposer
                     'sidebar_only' => false
                 ]);
 
-                array_push($menus, [
-                    'title' => 'ECS Bookings',
-                    'link' => route('frontend.ecs_client_portal.clientBookings'),
-                    'icon' => 'fas fa-list',
-                    'sidebar_only' => false
-                ]);
-
             }
             // ECS end
 
 
-//            if($user->can('manage fuel records')){
-//                array_push($menus, [
-//                    'title' => 'Fueling Records',
-//                    'link' => route('frontend.fuel_discrepancies.reports.index'),
-//                    'icon' => 'fas fa-list-alt',
-//                    'sidebar_only' => false
-//                ]);
-//            }
+            //            if($user->can('manage fuel records')){
+            //                array_push($menus, [
+            //                    'title' => 'Fueling Records',
+            //                    'link' => route('frontend.fuel_discrepancies.reports.index'),
+            //                    'icon' => 'fas fa-list-alt',
+            //                    'sidebar_only' => false
+            //                ]);
+            //            }
 
             // Fuel Records start
             unset($menu_group);
             unset($dept_menu);
             $dept_menu = array();
             if ($user->can('plan Flights') || (Pilot::where('company_id', $staff_ara_id)->count()) || $user_is_admin) {
-//                array_push($dept_menu, [
-//                    'title' => 'Fuel Records',
-//                    'link' => route('frontend.fuel_discrepancies.techLogDataEntry'),
-//                    'icon' => 'fas fa-list-alt',
-//                ]);
+                //                array_push($dept_menu, [
+                //                    'title' => 'Fuel Records',
+                //                    'link' => route('frontend.fuel_discrepancies.techLogDataEntry'),
+                //                    'icon' => 'fas fa-list-alt',
+                //                ]);
 
                 array_push($dept_menu, [
                     'title' => 'Dashboard',
@@ -1025,7 +1093,6 @@ class MenuComposer
                 ];
 
                 array_push($menus, $menu_group);
-
             }
 
 
@@ -1043,18 +1110,18 @@ class MenuComposer
             // ServiceNow End
 
             // Admin services ServiceNow Start
-//            $id = $serviceNowGroups->where('name', 'Admin ServiceNow')->first()->id;
-//            if (isset($staff_member) || $user_is_admin && $id) {
-//                array_push($menus, [
-//                    'title' => 'Admin Services',
-//                    'link' => route('frontend.service_now.tickets.index', $id),
-//                    'icon' => 'fas fa-building',
-//                ]);
-//            }
+            //            $id = $serviceNowGroups->where('name', 'Admin ServiceNow')->first()->id;
+            //            if (isset($staff_member) || $user_is_admin && $id) {
+            //                array_push($menus, [
+            //                    'title' => 'Admin Services',
+            //                    'link' => route('frontend.service_now.tickets.index', $id),
+            //                    'icon' => 'fas fa-building',
+            //                ]);
+            //            }
             // Admin services ServiceNow End
 
             $is_agent = null;
-            if($staff_ara_id)
+            if ($staff_ara_id)
                 $is_agent = ServiceNowGroupAgent::where('staff_ara_id', $staff_ara_id)->get();
 
             // Finance services ServiceNow Start
@@ -1070,7 +1137,7 @@ class MenuComposer
 
             // PSS services ServiceNow Start
             $id = $serviceNowGroups->where('name', 'PSS ServiceNow')->first()->id;
-//            if ((isset($staff_member) && (in_array($staff_member->department_name, ['GROUND OPERATIONS', 'COMMERCIAL', 'OCC']) || (isset($is_agent) && $is_agent->where('service_now_group_id', $id)->count()))) || $user_is_admin && $id) {
+            //            if ((isset($staff_member) && (in_array($staff_member->department_name, ['GROUND OPERATIONS', 'COMMERCIAL', 'OCC']) || (isset($is_agent) && $is_agent->where('service_now_group_id', $id)->count()))) || $user_is_admin && $id) {
             if ($user_is_admin || (isset($staff_member) && in_array($staff_ara_id, ['8113C', '7299']))) {
                 array_push($menus, [
                     'title' => 'PSS ServiceNow',
@@ -1145,7 +1212,7 @@ class MenuComposer
             }
             // L and D end
 
-            if($user_is_admin) {
+            if ($user_is_admin) {
                 array_push($menus, [
                     'title' => 'CSV Import',
                     'link' => route('csv.uploadForm'),
@@ -1154,20 +1221,20 @@ class MenuComposer
                 ]);
             }
 
-            if($user_is_admin || (isset($staff_member) && in_array($staff_member->staff_ara_id, ['6878', '8113C', '8114C']))) {
-            array_push($menus, [
-                'title' => 'Service Now Agents',
-                'link' => route('frontend.service_now_group_agents.index'),
-                'icon' => 'fas fa-list',
-                'sidebar_only' => true
-            ]);
+            if ($user_is_admin || (isset($staff_member) && in_array($staff_member->staff_ara_id, ['6878', '8113C', '8114C']))) {
+                array_push($menus, [
+                    'title' => 'Service Now Agents',
+                    'link' => route('frontend.service_now_group_agents.index'),
+                    'icon' => 'fas fa-list',
+                    'sidebar_only' => true
+                ]);
 
-            array_push($menus, [
-                'title' => 'Service Now Viewers',
-                'link' => route('frontend.service_now_group_viewers.index'),
-                'icon' => 'fas fa-list',
-                'sidebar_only' => true
-            ]);
+                array_push($menus, [
+                    'title' => 'Service Now Viewers',
+                    'link' => route('frontend.service_now_group_viewers.index'),
+                    'icon' => 'fas fa-list',
+                    'sidebar_only' => true
+                ]);
             }
 
 
@@ -1181,23 +1248,24 @@ class MenuComposer
                     'icon' => 'fas fa-users'
                 ]);
 
-                array_push($dept_menu, [
-                    'title' => 'Folders',
-                    'link' => route('frontend.legal_team_folders.index'),
-                    'icon' => 'fas fa-folder',
-                ]);
+                //                array_push($dept_menu, [
+                //                    'title' => 'Folders',
+                //                    'link' => route('frontend.legal_team_folders.index'),
+                //                    'icon' => 'fas fa-folder',
+                //                ]);
+                //
+                //                array_push($dept_menu, [
+                //                    'title' => 'Folder Access',
+                //                    'link' => route('frontend.legal_team_folder_accesses.index'),
+                //                    'icon' => 'fas fa-shield'
+                //                ]);
 
-                array_push($dept_menu, [
-                    'title' => 'Folder Access',
-                    'link' => route('frontend.legal_team_folder_accesses.index'),
-                    'icon' => 'fas fa-shield'
-                ]);
-
-                array_push($dept_menu, [
-                    'title' => 'Documents',
-                    'link' => route('frontend.legal_team_documents.index'),
-                    'icon' => 'fas fa-file-alt'
-                ]);
+//                array_push($menus, [
+//                    'title' => 'Cases',
+//                    'link' => route('frontend.legal_team_cases.index'),
+//                    'icon' => 'fas fa-file-alt',
+//                    'sidebar_only' => false
+//                ]);
                 $menu_group = [
                     'title' => 'Legal Team',
                     'link' => '#hmo',
@@ -1209,14 +1277,21 @@ class MenuComposer
                 array_push($menus, $menu_group);
             }
 
+            if ($user->hasRole('external lawyer')) {
+                array_push($menus, [
+                    'title' => 'Legal: Cases',
+                    'link' => route('frontend.legal_team_cases.index'),
+                    'icon' => 'fas fa-file-alt',
+                    'sidebar_only' => false
+                ]);
+            }
+
             array_push($menus, [
                 'title' => 'Logout',
                 'link' => route('frontend.auth.logout'),
                 'icon' => 'fas fa-sign-out-alt',
                 'sidebar_only' => true
             ]);
-
-
         } else {
             $menus = [];
         }

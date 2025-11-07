@@ -40,7 +40,7 @@
                         <p><strong>Penalties:</strong> {{ checkIntNumber($ecs_booking->penalties) }}</p>
                         <p><strong>Ticket Fare:</strong> {{ checkIntNumber($ecs_booking->ticket_fare) }}</p>
                         <p><strong>Remarks:</strong> {!! $ecs_booking->remarks !!}</p>
-                        <p><strong>Date:</strong> {{ $ecs_booking->for_date }}</p>
+                        <p><strong>Date:</strong> {{ $ecs_booking->for_date->toDateString() }}</p>
                         <p>
                             <strong>Agent:</strong> {{ $ecs_booking->agent_user_idRelation ? $ecs_booking->agent_user_idRelation->full_name : '' }}
                         </p>
@@ -258,7 +258,7 @@
                                                     Edit
                                                 </button>
                                                 <form
-                                                    action="{{ route('frontend.ecs_flight_transactions_ajax.destroy', $ecs_flight_transactionsItem->id) }}"
+                                                    action="{{ route('frontend.ecs_flight_transactions.destroy', $ecs_flight_transactionsItem->id) }}"
                                                     method="POST" class="d-inline"
                                                     onsubmit="return confirm('Are you sure?')">
                                                     @csrf @method('DELETE')
@@ -275,7 +275,7 @@
                                         <div class="modal-dialog modal-lg">
                                             <div class="modal-content">
                                                 <form
-                                                    action="{{ route('frontend.ecs_flight_transactions_ajax.update', $ecs_flight_transactionsItem->id) }}"
+                                                    action="{{ route('frontend.ecs_flight_transactions.update', $ecs_flight_transactionsItem->id) }}"
                                                     method="POST">
                                                     @csrf @method('PUT')
                                                     <div class="modal-header">
@@ -293,10 +293,10 @@
                                                             <input type="text" class="form-control" name="ticket_number"
                                                                    value="{{ $ecs_flight_transactionsItem->ticket_number }}">
                                                         </div>
-                                                        <div class="form-group"><label>Trx Id</label>
-                                                            <input type="text" class="form-control" name="trx_id"
-                                                                   value="{{ $ecs_flight_transactionsItem->trx_id }}">
-                                                        </div>
+{{--                                                        <div class="form-group"><label>Trx Id</label>--}}
+{{--                                                            <input type="text" class="form-control" name="trx_id"--}}
+{{--                                                                   value="{{ $ecs_flight_transactionsItem->trx_id }}">--}}
+{{--                                                        </div>--}}
                                                         <div class="form-group"><label>Is Cancelled</label><br>
                                                             <div class="form-check form-check-inline">
                                                                 <input class="form-check-input" type="radio"
@@ -316,7 +316,7 @@
                                                                    name="service_fee"
                                                                    value="{{ $ecs_flight_transactionsItem->service_fee }}">
                                                         </div>
-                                                        <input type="hidden" name="for_date" value="{{ $ecs_booking->for_date }}">
+                                                        <input type="hidden" name="for_date" value="{{ $ecs_booking->for_date->toDateString() }}">
                                                         {{--                                                        <div class="form-group"><label>Client Approved At</label>--}}
                                                         {{--                                                            <input type="datetime-local" class="form-control" name="client_approved_at" value="{{ $ecs_flight_transactionsItem->client_approved_at }}"></div>--}}
                                                         {{--                                                        <div class="form-group"><label>Client Approver</label>--}}
@@ -408,7 +408,7 @@
         <div class="modal fade" id="modalCreate-ecs_flight_transactions" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <form action="{{ route('frontend.ecs_flight_transactions_ajax.store') }}" method="POST">
+                    <form action="{{ route('frontend.ecs_flight_transactions.store') }}" method="POST">
                         @csrf
                         <div class="modal-header">
                             <h5 class="modal-title">Add New Flight Transaction</h5>
@@ -422,8 +422,8 @@
                                 <input type="text" class="form-control" name="name"></div>
                             <div class="form-group"><label>Ticket Number</label>
                                 <input type="text" class="form-control" name="ticket_number"></div>
-                            <div class="form-group"><label>Trx Id</label>
-                                <input type="text" class="form-control" name="trx_id"></div>
+{{--                            <div class="form-group"><label>Trx Id</label>--}}
+{{--                                <input type="text" class="form-control" name="trx_id"></div>--}}
                             <div class="form-group"><label>Is Cancelled</label><br>
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="is_cancelled" value="no">

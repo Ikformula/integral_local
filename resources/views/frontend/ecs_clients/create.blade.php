@@ -58,6 +58,35 @@
                                 </div>
                                     @endforeach
                         </div>
+
+                        <h5>Applicable Additional Fees</h5>
+                        <div class="row">
+                            @foreach($additional_fees as $fee)
+                                <div class="col-sm-6">
+                                    <!-- checkbox -->
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="fee_columns[]" value="{{ $fee }}">
+                                            <label class="form-check-label">{{ unSlug($fee) }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="row mt-3">
+                                <div class="col-sm-6">
+                                    <!-- checkbox -->
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="select_category" value="1">
+                                            <label class="form-check-label">Require Category</label>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+
+
                         <button type="submit" class="btn btn-primary">Save</button>
                         <a href="{{ route('frontend.ecs_clients.index') }}" class="btn btn-secondary">Cancel</a>
                     </form>

@@ -61,7 +61,7 @@ class LegalTeamFolderAjaxController extends Controller
         $file_name = Str::slug($request->title.' '.now()->toDayDateTimeString(), '_').'.'.$request->file('file_uploaded')->extension();
         $size = $request->file('file_uploaded')->getSize();
         $size_in_kilobytes = round($size / 1024, 2);
-        $size_in_mb = round($size / 1048576, 2);
+        $size_in_megabytes = round($size / 1048576, 2);
 
         $path = $request->file('file_uploaded')->storeAs('legal_external_docs', $file_name);
         $legal_doc = new LegalTeamDocument();
@@ -72,7 +72,7 @@ class LegalTeamFolderAjaxController extends Controller
         $legal_doc->file_name = $path;
         $legal_doc->folder_id = $request->folder_id;
         $legal_doc->size_in_kilobytes = $size_in_kilobytes;
-        $legal_doc->size_in_megabytes = $size_in_mb;
+        $legal_doc->size_in_megabytes = $size_in_megabytes;
         $legal_doc->save();
 
         return redirect()->back()->withFlashSuccess('File Uploaded Successfully');

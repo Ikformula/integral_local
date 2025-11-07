@@ -19,6 +19,15 @@ class EcsClientController extends Controller
         'JY (VAT)',
         'JY (NC)',
         'YQ (CO)',
+        'OTHER REGIONAL TAXES',
+    ];
+
+    protected $additional_fees = [
+      'no_show_fee',
+        'excess_baggage_charge',
+        'date_change_fee',
+        'name_change_fee',
+        'reroute_fee',
     ];
 
     public function index()
@@ -30,7 +39,8 @@ class EcsClientController extends Controller
     public function create()
     {
         return view('frontend.ecs_clients.create')->with([
-            'taxes' => $this->taxes
+            'taxes' => $this->taxes,
+            'additional_fees' => $this->additional_fees
         ]);
     }
 
@@ -45,17 +55,32 @@ class EcsClientController extends Controller
         ]);
 
         $client = EcsClient::create($request->except(['current_balance']));
+        if($request->select_category == 1)
+            $client->select_category = 1;
 
-        $tax_columns = [];
-        foreach ($request->tax_columns as $tax_column){
-            $tax_columns[] = $tax_column;
+        if($request->filled('tax_columns') && count($request->tax_columns)) {
+            $tax_columns = [];
+            foreach ($request->tax_columns as $tax_column) {
+                $tax_columns[] = $tax_column;
+            }
+
+            $client->enabled_tax_columns = json_encode($tax_columns);
         }
 
-        $client->enabled_tax_columns = json_encode($tax_columns);
+        if($request->filled('fee_columns') && count($request->fee_columns)) {
+            $fee_columns = [];
+            foreach ($request->fee_columns as $fee_column) {
+                $fee_columns[] = $fee_column;
+            }
+
+            $client->enabled_fee_columns = json_encode($fee_columns);
+        }
+
+        $client->save();
         if($request->current_balance != 0)
         $this->addTransactionSummary($client, $request->current_balance, $client, $request->current_balance > 0 ? 'credit' : 'debit');
 
-        return redirect()->route('frontend.ecs_clients.index')->with('success', 'Client created successfully.');
+        return redirect()->route('frontend.ecs_clients.index')->with('flash_success', 'Client created successfully.');
     }
 
     public function show(EcsClient $ecs_client)
@@ -66,7 +91,8 @@ class EcsClientController extends Controller
     public function edit(EcsClient $ecs_client)
     {
         return view('frontend.ecs_clients.edit', compact('ecs_client'))->with([
-            'taxes' => $this->taxes
+            'taxes' => $this->taxes,
+            'additional_fees' => $this->additional_fees
         ]);
     }
 
@@ -82,22 +108,42 @@ class EcsClientController extends Controller
 
         $ecs_client->update($validated);
 
-        $tax_columns = [];
-        foreach ($request->tax_columns as $tax_column){
-            $tax_columns[] = $tax_column;
+        if(!is_null($request->select_category)) {
+            $ecs_client->select_category = 1;
+        }else{
+            $ecs_client->select_category = null;
+        }
+
+        if($request->filled('tax_columns') && count($request->tax_columns)) {
+            $tax_columns = [];
+            foreach ($request->tax_columns as $tax_column) {
+                $tax_columns[] = $tax_column;
+            }
+
+            $ecs_client->enabled_tax_columns = json_encode($tax_columns);
+        }
+
+        if($request->filled('fee_columns') && count($request->fee_columns)) {
+            $fee_columns = [];
+            foreach ($request->fee_columns as $fee_column) {
+                $fee_columns[] = $fee_column;
+            }
+
+            $ecs_client->enabled_fee_columns = json_encode($fee_columns);
         }
 
         $ecs_client->enabled_tax_columns = json_encode($tax_columns);
         $ecs_client->save();
 
-        return redirect()->route('frontend.ecs_clients.index')->with('success', 'Client updated successfully.');
+        return redirect()->back()->with('flash_success', 'Client updated successfully.');
+        return redirect()->route('frontend.ecs_clients.index')->with('flash_success', 'Client updated successfully.');
     }
 
     public function destroy(EcsClient $ecs_client)
     {
         $ecs_client->delete();
 
-        return redirect()->route('frontend.ecs_clients.index')->with('success', 'Client deleted successfully.');
+        return redirect()->route('frontend.ecs_clients.index')->with('flash_success', 'Client deleted successfully.');
     }
 
 }

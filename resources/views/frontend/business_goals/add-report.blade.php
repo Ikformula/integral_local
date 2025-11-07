@@ -1,5 +1,7 @@
 @extends('frontend.layouts.app')
 
+@section('title', (isset($business_area) ? $business_area->name : ''). ' BSC Input')
+
 @if(in_array($business_area->id, [3, 10]))
 @push('after-styles')
     <link rel="stylesheet" href="{{ asset('adminlte3.2/plugins/select2/css/select2.min.css') }}">
@@ -14,7 +16,6 @@
             <div class="col-lg-9">
                 @include('frontend.business_goals.partials._business-area-selector')
                 <div class="card">
-
                     <div class="card-header">{{ $business_area->name ?? 'Yyyy?'}} - Business Score Card Data Entry for Wk {{ $selected_week->week_number }}: {{ $selected_week->from_day }} - {{ $selected_week->to_day }}
                         @if(is_null($data_points) || empty($data_points) || !$data_points->count() && $recent_filled_week))
                     <form method="GET" class="mt-3">

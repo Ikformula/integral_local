@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.2/css/dataTables.dateTime.min.css">
 @endpush
 
-@section('title', 'ECS Weekly Report')
+@section('title', 'ECS Periodic Report')
 
 @section('content')
 <div class="container-fluid">

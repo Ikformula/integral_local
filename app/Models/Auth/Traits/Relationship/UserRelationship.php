@@ -7,6 +7,7 @@ use App\Models\Auth\SocialAccount;
 use App\Models\BusinessArea;
 use App\Models\ContactDetail;
 use App\Models\FamilyDetail;
+use App\Models\LegalTeamExternalLawyer;
 use App\Models\ServiceNowGroupViewer;
 use App\Models\SpiSector;
 use App\Models\SpiSectorUserPermission;
@@ -70,6 +71,10 @@ trait UserRelationship
         return SpiSectorUserPermission::where('user_id', $this->id)->pluck('sector_id');
     }
 
+    public function lawyer()
+    {
+        return $this->belongsTo(LegalTeamExternalLawyer::class,  'id', 'user_id');
+    }
 
     public function serviceNowViewables()
     {

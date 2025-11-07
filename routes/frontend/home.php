@@ -62,6 +62,7 @@ use App\Http\Controllers\Frontend\User\ServiceNowGroupViewerController;
 use App\Http\Controllers\Frontend\User\EcsFlightController;
 use App\Http\Controllers\Frontend\User\EcsFlightAjaxController;
 use App\Http\Controllers\Frontend\User\StbHrController;
+use App\Http\Controllers\Frontend\User\LegalExternalLawyerController;
 use App\Http\Controllers\Frontend\User\LegalTeamExternalLawyerController;
 use App\Http\Controllers\Frontend\User\LegalTeamFolderAjaxController;
 use App\Http\Controllers\Frontend\User\LegalTeamFolderAccessAjaxController;
@@ -73,7 +74,9 @@ use App\Http\Controllers\Frontend\User\ExternalVendorAjaxController;
 use App\Http\Controllers\Frontend\User\QaLetterAjaxController;
 use App\Http\Controllers\Frontend\User\EcsPortalUserAjaxController;
 use App\Http\Controllers\Frontend\User\EcsInternalDashController;
-
+use App\Http\Controllers\Frontend\User\QaCategoryAjaxController;
+use App\Http\Controllers\Frontend\User\AvsecVehicleController;
+use App\Http\Controllers\Frontend\User\LegalTeamCasesAjaxController;
 
 
 
@@ -85,6 +88,7 @@ use App\Http\Controllers\Frontend\User\EcsInternalDashController;
  * Frontend Controllers
  * All route names are prefixed with 'frontend.'.
  */
+
 Route::view('fitness-demo', 'frontend.user.fitness-demo');
 
 Route::get('contact', [ContactController::class, 'index'])->name('contact');
@@ -149,12 +153,13 @@ Route::get('updateTextToNumbers', [FinanceRaController::class, 'updateTextToNumb
 Route::group(['middleware' => ['auth', 'password_expires']], function () {
 
     Route::get('/', [HomeController::class, 'index'])->name('index');
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('outgoing-messages-log', [DashboardController::class, 'outgoingMessages'])->name('outgoingMessages');
 
     Route::group(['namespace' => 'User', 'as' => 'user.'], function () {
         // User Dashboard Specific
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('i-dashboard', function(){
+        Route::get('i-dashboard', function () {
             return view('iframe');
         })->name('i_dashboard');
 
@@ -162,11 +167,10 @@ Route::group(['middleware' => ['auth', 'password_expires']], function () {
         Route::get('account', [AccountController::class, 'index'])->name('account');
 
         // User Profile Specific
-        Route::group(['middleware' => ['permission:update other staff info|manage own unit info']], function(){
+        Route::group(['middleware' => ['permission:update other staff info|manage own unit info']], function () {
             Route::get('staff-profiles', [ProfileController::class, 'staffMembersProfiles'])->name('profiles');
             Route::post('init-deactivate-staff', [StaffManagementController::class, 'storeStaffDeactivation'])->name('init.deactivateStaff');
             Route::post('add-remote-schedule', [StaffManagementController::class, 'storeRemoteSchedule'])->name('storeRemoteSchedule');
-
         });
         Route::resource('staff', '\App\Http\Controllers\Frontend\User\StaffController')->middleware('permission:update other staff info');
 
@@ -212,7 +216,7 @@ Route::group(['middleware' => ['auth', 'password_expires']], function () {
         Route::get('reset-password', [StaffTravelAccessController::class, 'sendPasswordResetEmail'])->name('reset_password_email');
         Route::post('verify-reset-code', [StaffTravelAccessController::class, 'verifyResetCode'])->name('verify_reset_code');
 
-        Route::group(['middleware' => 'permission:manage staff travel platform'], function(){
+        Route::group(['middleware' => 'permission:manage staff travel platform'], function () {
             Route::get('stb-hr-mgt', [StbHrController::class, 'index'])->name('stbHrMGT');
             Route::post('store-window', [StbHrController::class, 'storeWindow'])->name('store.window');
             Route::post('close-window/{stbRegistrationWindow}', [StbHrController::class, 'closeWindow'])->name('close.window');
@@ -225,19 +229,19 @@ Route::group(['middleware' => ['auth', 'password_expires']], function () {
         });
     });
 
-    Route::group(['namespace' => 'User', 'as' => 'attendance.', 'prefix' => 'attendance'], function(){
-        Route::group(['middleware' => 'permission:mark attendance'], function(){
-       Route::get('/', [StaffAttendanceController::class, 'index'])->name('index');
-    });
+    Route::group(['namespace' => 'User', 'as' => 'attendance.', 'prefix' => 'attendance'], function () {
+        Route::group(['middleware' => 'permission:mark attendance'], function () {
+            Route::get('/', [StaffAttendanceController::class, 'index'])->name('index');
+        });
 
-        Route::group(['middleware' => 'permission:mark outstation attendance'], function(){
+        Route::group(['middleware' => 'permission:mark outstation attendance'], function () {
             Route::get('outstation', [StaffAttendanceController::class, 'outstation'])->name('outstation');
         });
 
-       Route::get('scan-qr', [StaffAttendanceController::class, 'qrCodeToScan'])->name('qrCodeToScan');
-//       Route::get('staff-attendance', [StaffAttendanceController::class, 'viewIndividualStaffAttendance'])->name('view.individual.staff');
-        Route::group(['middleware' => ['permission:update other staff info|manage own unit info|manage all staff attendance']], function() {
-//            Route::get('multiple-staff-attendance', [StaffAttendanceController::class, 'viewMultipleStaffAttendance'])->name('multiple.staff.attendance');
+        Route::get('scan-qr', [StaffAttendanceController::class, 'qrCodeToScan'])->name('qrCodeToScan');
+        //       Route::get('staff-attendance', [StaffAttendanceController::class, 'viewIndividualStaffAttendance'])->name('view.individual.staff');
+        Route::group(['middleware' => ['permission:update other staff info|manage own unit info|manage all staff attendance']], function () {
+            //            Route::get('multiple-staff-attendance', [StaffAttendanceController::class, 'viewMultipleStaffAttendance'])->name('multiple.staff.attendance');
             Route::post('notifyLateComer', [\App\Http\Controllers\Frontend\User\StaffAttendanceMiscController::class, 'notifyLateComer'])->name('notifyLateComer');
             Route::get('send-email', [StaffAttendanceMiscController::class, 'notifyLateComer'])->name('send.attendance.email');
 
@@ -246,50 +250,50 @@ Route::group(['middleware' => ['auth', 'password_expires']], function () {
             Route::get('staff-attendance/weekly-summaries', [StaffAttendanceAltController::class, 'showWeeklySummaries'])->name('staff_attendance.weekly_summaries');
 
             Route::get('staff-attendance-summaries', [StaffAttendanceAltController::class, 'attendanceSummaries'])->name('staff.attendance.summaries');
-
         });
 
-    Route::group(['as' => 'holidays.', 'middleware' => ['permission:update other staff info|manage all staff attendance']], function(){
-        Route::get('/holidays', 'HolidayController@holidays')->name('all');
-        Route::get('/holidays-data', 'HolidayController@index')->name('index');
-        Route::get('/holidays/{id}', 'HolidayController@show')->name('show');
-        Route::post('/holidays', 'HolidayController@store')->name('store');
-        Route::put('/holidays/{id}', 'HolidayController@update')->name('update');
-        Route::delete('/holidays/{id}', 'HolidayController@destroy')->name('destroy');
-    });
+        Route::group(['as' => 'holidays.', 'middleware' => ['permission:update other staff info|manage all staff attendance']], function () {
+            Route::get('/holidays', 'HolidayController@holidays')->name('all');
+            Route::get('/holidays-data', 'HolidayController@index')->name('index');
+            Route::get('/holidays/{id}', 'HolidayController@show')->name('show');
+            Route::post('/holidays', 'HolidayController@store')->name('store');
+            Route::put('/holidays/{id}', 'HolidayController@update')->name('update');
+            Route::delete('/holidays/{id}', 'HolidayController@destroy')->name('destroy');
+        });
 
         Route::get('my-attendance', [StaffAttendanceAltController::class, 'fetchStaffAttendance'])->name('my.attendance');
         Route::get('managed-authorizations', [StaffAttendanceAuthorizationsController::class, 'userCreatedExemptions'])->name('managed.authorizations');
         Route::get('managed-staff', [StaffAttendanceAuthorizationsController::class, 'staffUnderMe'])->name('managed.staff');
         Route::get('create-manager-authorization', [StaffAttendanceAuthorizationsController::class, 'createExemption'])->name('create.manager.authorization');
         Route::post('create-manager-authorization', [StaffAttendanceAuthorizationsController::class, 'storeExemption'])->name('store.manager.authorization');
-
     });
 
-    Route::group(['namespace' => 'User', 'as' => 'vehicle.', 'prefix' => 'vehicle'], function(){
-       Route::post('store-vehicle', [VehiclesController::class, 'storeVehicle'])->name('store');
+    Route::group(['namespace' => 'User', 'as' => 'vehicle.', 'prefix' => 'vehicle'], function () {
+        Route::post('store-vehicle', [VehiclesController::class, 'storeVehicle'])->name('store');
     });
 
-    Route::group(['namespace' => 'User', 'as' => 'pilotLibrary.', 'prefix' => 'pilot-library'], function(){
+    // Avsec vehicle manager actions
+    Route::post('avsec-vehicles/{item}/reopen', [AvsecVehicleController::class, 'reopen'])->name('avsec_vehicles.reopen');
+
+    Route::group(['namespace' => 'User', 'as' => 'pilotLibrary.', 'prefix' => 'pilot-library'], function () {
         Route::group([
             'middleware' => ['permission:manage pilot elibrary']
-        ], function(){
+        ], function () {
             Route::get('add-pdf', [FCNIController::class, 'create'])->name('create');
             Route::post('add-pdf', [FCNIController::class, 'store'])->name('store');
         });
 
         Route::group([
             'middleware' => ['permission:view Q400 PDFs|view 737 PDFs']
-        ], function(){
+        ], function () {
             Route::get('/', [FCNIController::class, 'index'])->name('index');
             Route::post('mark-as-read', [FCNIController::class, 'markAsRead'])->name('mark.as.read');
             Route::get('/{pdf_file}', [FCNIController::class, 'show'])->name('show');
             Route::delete('/{pdf_file}', [FCNIController::class, 'destroy'])->name('delete');
         });
-
     });
 
-    Route::group(['namespace' => 'User', 'as' => 'tour_operations.', 'prefix' => 'tour-operations', 'middleware' => ['permission:make tour bookings']], function(){
+    Route::group(['namespace' => 'User', 'as' => 'tour_operations.', 'prefix' => 'tour-operations', 'middleware' => ['permission:make tour bookings']], function () {
         Route::get('list', [TourOperationsController::class, 'pendings'])->name('passengers.list');
         Route::get('completed', [TourOperationsController::class, 'completed'])->name('passengers.completed.bookings');
         Route::get('my-opened-list', [TourOperationsController::class, 'myCurrentlyOpened'])->name('passengers.my.opened.list');
@@ -303,7 +307,7 @@ Route::group(['middleware' => ['auth', 'password_expires']], function () {
     });
 
     // IT Assets
-    Route::group(['namespace' => 'User', 'as' => 'it_assets.', 'prefix' => 'it-assets', 'middleware' => ['permission:manage IT assets']], function() {
+    Route::group(['namespace' => 'User', 'as' => 'it_assets.', 'prefix' => 'it-assets', 'middleware' => ['permission:manage IT assets']], function () {
         Route::get('staff-it-assets', [AssetRegisterController::class, 'staffItAssets'])->name('staff.it.assets');
         Route::get('dashboard', [AssetRegisterController::class, 'dashboard'])->name('dashboard');
         Route::get('assets-by-staff', [AssetRegisterController::class, 'assetsByStaff'])->name('assetsByStaff');
@@ -315,13 +319,13 @@ Route::group(['middleware' => ['auth', 'password_expires']], function () {
         Route::post('update/{it_asset}', [AssetRegisterController::class, 'update'])->name('update');
         Route::post('destroy/{it_asset}', [AssetRegisterController::class, 'destroy'])->name('destroy');
     });
-Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name('network.outage.analysis.tool');
-    Route::group(['namespace' => 'User', 'as' => 'work_flows.', 'prefix' => 'workflows'], function (){
+    Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name('network.outage.analysis.tool');
+    Route::group(['namespace' => 'User', 'as' => 'work_flows.', 'prefix' => 'workflows'], function () {
         Route::resource('workflow', 'DemoMemoController');
     });
 
-    Route::group(['namespace' => 'User', 'as' => 'log_keeping.', 'prefix' => 'log_keeping', 'middleware' => ['permission:view logstreams']], function (){
-        Route::group(['middleware' => ['permission:enter logkeeps']], function(){
+    Route::group(['namespace' => 'User', 'as' => 'log_keeping.', 'prefix' => 'log_keeping', 'middleware' => ['permission:view logstreams']], function () {
+        Route::group(['middleware' => ['permission:enter logkeeps']], function () {
             Route::get('erp/{erp}', [ErpsController::class, 'show'])->name('show.erp');
             Route::post('erps', [ErpsController::class, 'store'])->name('store.erp');
             Route::delete('erps/{erp}', [ErpsController::class, 'destroy'])->name('delete.erp');
@@ -331,11 +335,10 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::get('erps', [ErpsController::class, 'erps'])->name('erps');
         // Route::get('log-keeping', [LogkeepsController::class, 'index'])->name('index');
         Route::get('log-stream/{erp}', [LogkeepsController::class, 'logstream'])->name('logstream');
-
     });
 
 
-    Route::group(['namespace' => 'User', 'as' => 'staff_info_management.', 'prefix' => 'staff_info_management', 'middleware' => ['permission:update other staff info|edit staff email']], function (){
+    Route::group(['namespace' => 'User', 'as' => 'staff_info_management.', 'prefix' => 'staff_info_management', 'middleware' => ['permission:update other staff info|edit staff email']], function () {
         Route::get('emailFix', [StaffManagementController::class, 'emailFix'])->name('emailFix');
         Route::get('ms-email', [MsMigrationResolutionController::class, 'index'])->name('ms.email');
         Route::get('add-staff', [StaffManagementController::class, 'createStaffForm'])->name('createStaffForm');
@@ -346,7 +349,7 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
     Route::get('updateEmailUserStaff', [StaffManagementController::class, 'updateEmailUserStaff']);
 
 
-    Route::group(['namespace' => 'User', 'prefix' => 'vacancies/backend', 'as' => 'vacancies.backend.', 'name' => 'vacancies.backend.', 'middleware' => ['permission:manage vacancy postings']], function (){
+    Route::group(['namespace' => 'User', 'prefix' => 'vacancies/backend', 'as' => 'vacancies.backend.', 'name' => 'vacancies.backend.', 'middleware' => ['permission:manage vacancy postings']], function () {
         Route::get('/', [VacanciesBackendController::class, 'index'])->name('index');
         Route::post('/', [VacanciesBackendController::class, 'store'])->name('store');
         Route::get('/{vacancy}', [VacanciesBackendController::class, 'edit'])->name('edit');
@@ -357,7 +360,7 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::post('/{vacancy}/email-processing', [VacanciesBackendController::class, 'sendEmail'])->name('email.processing');
     });
 
-    Route::group(['namespace' => 'User', 'as' => 'job_applications.', 'prefix' => 'job_applications', 'name' => 'job_applications.'], function (){
+    Route::group(['namespace' => 'User', 'as' => 'job_applications.', 'prefix' => 'job_applications', 'name' => 'job_applications.'], function () {
         Route::post('/', [JobApplicationController::class, 'store'])->name('store');
         Route::get('create', [JobApplicationController::class, 'create'])->name('create');
         Route::get('job-applications/{id}', [JobApplicationController::class, 'show'])->name('show');
@@ -365,13 +368,12 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::get('vacancies/{vacancy}', [VacancyController::class, 'show'])->name('show.vacancy');
 
         Route::resource('work_experiences', 'WorkExperienceController');
-
     });
 
     // ServiceNow
-    Route::group(['namespace' => 'User', 'as' => 'service_now.', 'prefix' => 'service_now', 'name' => 'service_now.'], function (){
+    Route::group(['namespace' => 'User', 'as' => 'service_now.', 'prefix' => 'service_now', 'name' => 'service_now.'], function () {
 
-        Route::group(['as' => 'tickets.', 'prefix' => 'tickets', 'name' => 'tickets.'], function(){
+        Route::group(['as' => 'tickets.', 'prefix' => 'tickets', 'name' => 'tickets.'], function () {
             Route::get('/group/{group}', [TicketsController::class, 'index'])->name('index');
             Route::get('create/group/{group}', [TicketsController::class, 'create'])->name('create');
             Route::post('store', [TicketsController::class, 'store'])->name('store');
@@ -385,26 +387,26 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
     });
 
     // Fuel discrepancies
-    Route::group(['namespace' => 'User', 'as' => 'fuel_discrepancies.', 'prefix' => 'fuel_discrepancies', 'name' => 'fuel_discrepancies.'], function (){
-            Route::resource('reports', 'FuelDiscrepanciesController');
+    Route::group(['namespace' => 'User', 'as' => 'fuel_discrepancies.', 'prefix' => 'fuel_discrepancies', 'name' => 'fuel_discrepancies.'], function () {
+        Route::resource('reports', 'FuelDiscrepanciesController');
     });
 
     // Flight Envelope Records / Pilots
-    Route::group(['namespace' => 'User', 'as' => 'flight_envelopes.', 'prefix' => 'flight_envelopes', 'name' => 'flight_envelopes.'], function (){
+    Route::group(['namespace' => 'User', 'as' => 'flight_envelopes.', 'prefix' => 'flight_envelopes', 'name' => 'flight_envelopes.'], function () {
         Route::resource('records', 'FlightEnvelopeController');
         Route::post('cell-entry', [FlightEnvelopeController::class, 'cellEntrySaver'])->name('cellEntrySaver');
     });
 
     //FormEngine
-    Route::group(['namespace' => 'User', 'as' => 'forms_engine.', 'prefix' => 'forms_engine', 'name' => 'forms_engine.'], function (){
-        Route::group(['middleware' => ['permission:manage forms']], function(){
+    Route::group(['namespace' => 'User', 'as' => 'forms_engine.', 'prefix' => 'forms_engine', 'name' => 'forms_engine.'], function () {
+        Route::group(['middleware' => ['permission:manage forms']], function () {
             Route::get('create-form', [FormsManagementController::class, 'create'])->name('create');
         });
     });
 
     //Ticket Glitches
-    Route::group(['namespace' => 'User', 'as' => 'ticket_glitches_report.', 'prefix' => 'ticket_glitches_report', 'name' => 'ticket_glitches_report.'], function (){
-        Route::group(['middleware' => ['permission:manage ticket glitches']], function(){
+    Route::group(['namespace' => 'User', 'as' => 'ticket_glitches_report.', 'prefix' => 'ticket_glitches_report', 'name' => 'ticket_glitches_report.'], function () {
+        Route::group(['middleware' => ['permission:manage ticket glitches']], function () {
             Route::get('glitches-days', [TicketGlitchesController::class, 'index'])->name('index');
             Route::get('glitches-days/{day}', [TicketGlitchesController::class, 'show'])->name('show');
             Route::post('glitches-days', [TicketGlitchesController::class, 'store'])->name('store');
@@ -413,12 +415,12 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         });
     });
 
-    Route::group(['namespace' => 'User', 'as' => 'pax_complaints.', 'prefix' => 'pax_complaints', 'middleware' => ['permission:manage pax complaints']], function (){
+    Route::group(['namespace' => 'User', 'as' => 'pax_complaints.', 'prefix' => 'pax_complaints', 'middleware' => ['permission:manage pax complaints']], function () {
         Route::get('/', [PaxComplaintsController::class, 'index'])->name('index');
         Route::resource('pax_complaints', 'PaxComplaintsController');
     });
 
-    Route::group(['namespace' => 'User', 'as' => 'business_goals.', 'prefix' => 'business_goals', 'middleware' => ['permission:manage business goals data']], function (){
+    Route::group(['namespace' => 'User', 'as' => 'business_goals.', 'prefix' => 'business_goals', 'middleware' => ['permission:manage business goals data']], function () {
         Route::get('add-report', [BusinessGoalsController::class, 'create'])->name('add_report');
         Route::get('add-single-day-report', [BusinessGoalsController::class, 'createForSingleDay'])->name('add_single_day_report');
         Route::post('add-report', [BusinessGoalsController::class, 'store'])->name('store_report');
@@ -434,9 +436,9 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::get('group-business-areas', [BusinessGoalsController::class, 'groupBusinessAreaTables'])->name('group.business.areas');
     });
 
-    Route::group(['namespace' => 'User', 'as' => 'flight_disruption.', 'prefix' => 'flight_disruption', 'middleware' => ['permission:manage disruption logs']], function (){
+    Route::group(['namespace' => 'User', 'as' => 'flight_disruption.', 'prefix' => 'flight_disruption', 'middleware' => ['permission:manage disruption logs']], function () {
         Route::get('/', [DisruptionLogsController::class, 'index'])->name('index');
-//        Route::put('/{id}', [DisruptionLogsController::class, 'update'])->name('update');
+        //        Route::put('/{id}', [DisruptionLogsController::class, 'update'])->name('update');
         Route::post('/', [DisruptionLogsController::class, 'store'])->name('store');
     });
 
@@ -467,44 +469,44 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
     Route::get('/user-activity-logs', [UserActivityController::class, 'index'])->middleware(['permission:view backend'])->name('user.activity.index');
 
     Route::get('/srb-sectors', [SRBController::class, 'structureAssessor'])->name('srb.sectors');
-    Route::group(['namespace' => 'User', 'as' => 'safety_review.', 'prefix' => 'safety_review', ], function(){
-        Route::group(['middleware' => ['permission:manage safety performance index']], function(){
+    Route::group(['namespace' => 'User', 'as' => 'safety_review.', 'prefix' => 'safety_review',], function () {
+        Route::group(['middleware' => ['permission:manage safety performance index']], function () {
 
-        Route::post('objective/store', 'SRBController@storeObjective')->name('objective.store');
-        Route::post('indicator/store', 'SRBController@storeIndicator')->name('indicator.store');
-        Route::post('metric/store', 'SRBController@storeMetric')->name('metric.store');
+            Route::post('objective/store', 'SRBController@storeObjective')->name('objective.store');
+            Route::post('indicator/store', 'SRBController@storeIndicator')->name('indicator.store');
+            Route::post('metric/store', 'SRBController@storeMetric')->name('metric.store');
 
-        Route::put('objective/{objective}', 'SRBController@updateObjective')->name('objective.update');
-        Route::put('indicator/{indicator}', 'SRBController@updateIndicator')->name('indicator.update');
-        Route::put('metric/{metric}', 'SRBController@updateMetric')->name('metric.update');
+            Route::put('objective/{objective}', 'SRBController@updateObjective')->name('objective.update');
+            Route::put('indicator/{indicator}', 'SRBController@updateIndicator')->name('indicator.update');
+            Route::put('metric/{metric}', 'SRBController@updateMetric')->name('metric.update');
 
-        Route::delete('objective/{objective}', 'SRBController@destroyObjective')->name('objective.destroy');
-        Route::delete('indicator/{indicator}', 'SRBController@destroyIndicator')->name('indicator.destroy');
-        Route::delete('metric/{metric}', 'SRBController@destroyMetric')->name('metric.destroy');
+            Route::delete('objective/{objective}', 'SRBController@destroyObjective')->name('objective.destroy');
+            Route::delete('indicator/{indicator}', 'SRBController@destroyIndicator')->name('indicator.destroy');
+            Route::delete('metric/{metric}', 'SRBController@destroyMetric')->name('metric.destroy');
 
-        Route::get('targets', [SRBController::class, 'setPeriodTarget'])->name('targets.index');
-        Route::post('targets', [SRBController::class, 'updateMetricTargets'])->name('targets.update');
+            Route::get('targets', [SRBController::class, 'setPeriodTarget'])->name('targets.index');
+            Route::post('targets', [SRBController::class, 'updateMetricTargets'])->name('targets.update');
 
-        Route::post('metric-centrik-status', [SRBController::class, 'updateMetricCentrikStatus'])->name('centrik.status.update');
+            Route::post('metric-centrik-status', [SRBController::class, 'updateMetricCentrikStatus'])->name('centrik.status.update');
 
-        Route::get('formulae', [SRBController::class, 'setMetricFormulae'])->name('formulae.index');
-        Route::post('formulae', [SRBController::class, 'updateMetricFormula'])->name('formulae.update');
-        Route::get('/permissions', [SpiPermissionController::class, 'index'])->name('permissions.index');
-        Route::post('/permissions', [SpiPermissionController::class, 'store'])->name('permissions.store');
-        Route::put('/permissions/{id}', [SpiPermissionController::class, 'update'])->name('permissions.update');
-        Route::delete('/permissions/{id}', [SpiPermissionController::class, 'destroy'])->name('permissions.delete');
+            Route::get('formulae', [SRBController::class, 'setMetricFormulae'])->name('formulae.index');
+            Route::post('formulae', [SRBController::class, 'updateMetricFormula'])->name('formulae.update');
+            Route::get('/permissions', [SpiPermissionController::class, 'index'])->name('permissions.index');
+            Route::post('/permissions', [SpiPermissionController::class, 'store'])->name('permissions.store');
+            Route::put('/permissions/{id}', [SpiPermissionController::class, 'update'])->name('permissions.update');
+            Route::delete('/permissions/{id}', [SpiPermissionController::class, 'destroy'])->name('permissions.delete');
 
-        Route::view('report-year-selection', 'frontend.spi.report_year_selection')->name('report.year.selection');
-        Route::post('years-report', [SRBController::class, 'viewReportForPeriod'])->name('years.report');
+            Route::view('report-year-selection', 'frontend.spi.report_year_selection')->name('report.year.selection');
+            Route::post('years-report', [SRBController::class, 'viewReportForPeriod'])->name('years.report');
 
-        Route::post('report-entry-centrik-confirmation', [SRBController::class, 'reportEntry'])->name('report.entry.centrik.confirm');
+            Route::post('report-entry-centrik-confirmation', [SRBController::class, 'reportEntry'])->name('report.entry.centrik.confirm');
         });
 
-        Route::group(['middleware' => ['permission:enter SPI data']], function() {
+        Route::group(['middleware' => ['permission:enter SPI data']], function () {
             Route::get('report-entry', [SRBController::class, 'reportEntry'])->name('report.entry');
             Route::post('report-entry', [SRBController::class, 'storeMetricEntry'])->name('metric.report.entry.store');
+            Route::post('report-entry/delete', [SRBController::class, 'deleteMetricEntry'])->name('metric.report.entry.delete');
         });
-
     });
 
     Route::prefix('cug-lines')->name('cug_lines.')->group(function () {
@@ -515,7 +517,7 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::post('/{id}/delete', [CugLineController::class, 'destroy'])->name('destroy');
     });
 
-//    Route::get('bulk-insert-cug', [CugLineController::class, 'toDb']);
+    //    Route::get('bulk-insert-cug', [CugLineController::class, 'toDb']);
 
     Route::prefix('ftp')->name('ftp.')->group(function () {
         Route::get('/', [FtpController::class, 'index'])->name('index');
@@ -523,7 +525,7 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::get('/listFiles-Curl', [FtpController::class, 'ftpCurl'])->name('ftpCurl');
     });
 
-    Route::get('pfo', function (){
+    Route::get('pfo', function () {
         phpinfo();
     });
 
@@ -537,7 +539,8 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::get('/{l_and_d_training_course}', [LAndDTrainingCourseController::class, 'show'])->name('show');
     });
 
-    Route::group(['middleware' => 'permission:manage ecs processes|manage ecs client balances'], function(){
+    Route::get('ecs-manual', [EcsInternalDashController::class, 'ecsManual'])->name('ecsManual');
+    Route::group(['middleware' => 'permission:manage ecs processes|manage ecs client balances'], function () {
         Route::get('ecs-dashboard', [EcsInternalDashController::class, 'index'])->name('ecs.dashboard');
         Route::get('ecs-activities', [EcsInternalDashController::class, 'ecsActivitiesLog'])->middleware('permission:view ecs activity logs')->name('ecs.activities.log');
 
@@ -547,7 +550,7 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
             Route::get('/',       [EcsPortalUserAjaxController::class, 'index'])->name('index');
             Route::post('/',      [EcsPortalUserAjaxController::class, 'store'])->name('store');
             Route::put('/{id}',   [EcsPortalUserAjaxController::class, 'update'])->name('update');
-            Route::delete('/{id}',[EcsPortalUserAjaxController::class, 'destroy'])->name('destroy');
+            Route::delete('/{id}', [EcsPortalUserAjaxController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('ecs-clients')->name('ecs_clients.')->group(function () {
@@ -562,50 +565,66 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
 
         Route::prefix('ecs_bookings')->name('ecs_bookings.')->group(function () {
             Route::get('/', [EcsBookingController::class, 'index'])->name('index');
-            Route::get('/create', [EcsBookingController::class, 'create'])->middleware('permission:manage ecs processes')->name('create');
-            Route::post('/create', [EcsBookingController::class, 'createBooking'])->middleware('permission:manage ecs processes')->name('selectClient');
+            Route::get('/request-booking-select-client', [EcsBookingController::class, 'create'])->middleware('permission:manage ecs processes')->name('create');
+            Route::get('/request-booking', [EcsBookingController::class, 'createBooking'])->middleware('permission:manage ecs processes')->name('selectClient');
             Route::post('/', [EcsBookingController::class, 'store'])->middleware('permission:manage ecs processes')->name('store');
-//            Route::get('/{item}/edit', [EcsBookingController::class, 'edit'])->name('edit');
-//            Route::put('/{item}', [EcsBookingController::class, 'update'])->name('update');
-//            Route::delete('/{item}', [EcsBookingController::class, 'destroy'])->name('destroy');
+
+            //            Route::get('/{item}/edit', [EcsBookingController::class, 'edit'])->name('edit');
+            //            Route::put('/{item}', [EcsBookingController::class, 'update'])->name('update');
+            //            Route::delete('/{item}', [EcsBookingController::class, 'destroy'])->name('destroy');
 
             // Flight Transactions AJAX CRUD
-    //        Route::get('/{item}/flight_transactions', [EcsFlightTransactionController::class, 'index'])->name('flight_transactions.index');
-    //        Route::post('/{item}/flight_transactions', [EcsFlightTransactionController::class, 'store'])->name('flight_transactions.store');
-    //        Route::put('/{item}/flight_transactions/{flight_transaction}', [EcsFlightTransactionController::class, 'update'])->name('flight_transactions.update');
-    //        Route::delete('/{item}/flight_transactions/{flight_transaction}', [EcsFlightTransactionController::class, 'destroy'])->name('flight_transactions.destroy');
-    //
-    //        // Flights AJAX CRUD
-    //        Route::get('/{item}/flights', [EcsFlightController::class, 'index'])->name('flights.index');
-    //        Route::post('/{item}/flights', [EcsFlightController::class, 'store'])->name('flights.store');
-    //        Route::put('/{item}/flights/{flight}', [EcsFlightController::class, 'update'])->name('flights.update');
-    //        Route::delete('/{item}/flights/{flight}', [EcsFligh
-    //tController::class, 'destroy'])->name('flights.destroy');
+            //        Route::get('/{item}/flight_transactions', [EcsFlightTransactionController::class, 'index'])->name('flight_transactions.index');
+            //        Route::post('/{item}/flight_transactions', [EcsFlightTransactionController::class, 'store'])->name('flight_transactions.store');
+            //        Route::put('/{item}/flight_transactions/{flight_transaction}', [EcsFlightTransactionController::class, 'update'])->name('flight_transactions.update');
+            //        Route::delete('/{item}/flight_transactions/{flight_transaction}', [EcsFlightTransactionController::class, 'destroy'])->name('flight_transactions.destroy');
+            //
+            //        // Flights AJAX CRUD
+            //        Route::get('/{item}/flights', [EcsFlightController::class, 'index'])->name('flights.index');
+            //        Route::post('/{item}/flights', [EcsFlightController::class, 'store'])->name('flights.store');
+            //        Route::put('/{item}/flights/{flight}', [EcsFlightController::class, 'update'])->name('flights.update');
+            //        Route::delete('/{item}/flights/{flight}', [EcsFligh
+            //tController::class, 'destroy'])->name('flights.destroy');
         });
 
         Route::prefix('ecs_flights_ajax')->name('ecs_flights_ajax.')->middleware('permission:manage ecs processes')->group(function () {
             Route::get('/',       [EcsFlightAjaxController::class, 'index'])->name('index');
             Route::post('/',      [EcsFlightAjaxController::class, 'store'])->name('store');
             Route::put('/{id}',   [EcsFlightAjaxController::class, 'update'])->name('update');
-            Route::delete('/{id}',[EcsFlightAjaxController::class, 'destroy'])->name('destroy');
+            Route::delete('/{id}', [EcsFlightAjaxController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('ecs_flight_transactions_ajax')->middleware('permission:manage ecs processes')->name('ecs_flight_transactions_ajax.')->group(function () {
+        Route::prefix('ecs_flight_transactions')->middleware('permission:manage ecs processes')->name('ecs_flight_transactions.')->group(function () {
             Route::get('/',       [EcsFlightTransactionAjaxController::class, 'index'])->name('index');
             Route::post('/',      [EcsFlightTransactionAjaxController::class, 'store'])->name('store');
+            Route::post('/bulk-request/store-group', [EcsFlightTransactionAjaxController::class, 'storeGroup'])->middleware('permission:manage ecs processes')->name('store.group');
+            Route::get('/ticket-log-client-selection', [EcsFlightTransactionAjaxController::class, 'ticketLogClientSelection'])->name('ticketLogClientSelection');
+            Route::get('/ticket-log', [EcsFlightTransactionAjaxController::class, 'ticketLogForClient'])->name('ticketLog');
             Route::put('/{id}',   [EcsFlightTransactionAjaxController::class, 'update'])->name('update');
-            Route::delete('/{id}',[EcsFlightTransactionAjaxController::class, 'destroy'])->name('destroy');
+            Route::delete('/{id}', [EcsFlightTransactionAjaxController::class, 'destroy'])->name('destroy');
+
+            Route::post('/bulk-verify', [EcsFlightTransactionAjaxController::class, 'bulkVerify'])->name('bulk_verify');
+
+            // Add edit, show, verify, and reject routes for ECS flight transactions
+            Route::get('/{id}/edit', [EcsFlightTransactionAjaxController::class, 'edit'])->name('edit');
+            Route::get('/{id}', [EcsFlightTransactionAjaxController::class, 'show'])->name('show');
+            Route::post('/{id}/verify', [EcsFlightTransactionAjaxController::class, 'verify'])->name('verify');
+            Route::post('/{id}/reject', [EcsFlightTransactionAjaxController::class, 'reject'])->name('reject');
+            Route::post('/{id}/push', [EcsFlightTransactionAjaxController::class, 'pushToClient'])->name('push');
+            Route::post('/{id}/cancel', [EcsFlightTransactionAjaxController::class, 'cancelFlightTransaction'])->name('cancel');
+            Route::post('/{id}/push-to-reconciliation', [EcsFlightTransactionAjaxController::class, 'pushToReconciliation'])->name('push.to.reconciliation');
+            Route::post('/{id}/reverse-from-reconciliation', [EcsFlightTransactionAjaxController::class, 'reverseFromReconciliation'])->name('reverse.from.reconciliation');
         });
 
-//        Route::prefix('ecs_flights')->name('ecs_flights.')->group(function () {
-//            Route::get('/', [EcsFlightController::class, 'index'])->name('index');
-//            Route::get('/create', [EcsFlightController::class, 'create'])->name('create');
-//            Route::post('/', [EcsFlightController::class, 'store'])->name('store');
-//            Route::get('/{item}', [EcsFlightController::class, 'show'])->name('show');
-//            Route::get('/{item}/edit', [EcsFlightController::class, 'edit'])->name('edit');
-//            Route::put('/{item}', [EcsFlightController::class, 'update'])->name('update');
-//            Route::delete('/{item}', [EcsFlightController::class, 'destroy'])->name('destroy');
-//        });
+        //        Route::prefix('ecs_flights')->name('ecs_flights.')->group(function () {
+        //            Route::get('/', [EcsFlightController::class, 'index'])->name('index');
+        //            Route::get('/create', [EcsFlightController::class, 'create'])->name('create');
+        //            Route::post('/', [EcsFlightController::class, 'store'])->name('store');
+        //            Route::get('/{item}', [EcsFlightController::class, 'show'])->name('show');
+        //            Route::get('/{item}/edit', [EcsFlightController::class, 'edit'])->name('edit');
+        //            Route::put('/{item}', [EcsFlightController::class, 'update'])->name('update');
+        //            Route::delete('/{item}', [EcsFlightController::class, 'destroy'])->name('destroy');
+        //        });
 
         Route::prefix('ecs_reconciliations')->middleware('permission:manage ecs processes')->name('ecs_reconciliations.')->group(function () {
             Route::get('/', [EcsReconciliationController::class, 'index'])->name('index');
@@ -624,9 +643,9 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
             Route::post('/', [EcsRefundController::class, 'store'])->name('store');
             Route::post('/create-group-refunds', [EcsRefundController::class, 'storeGroupRefunds'])->name('storeGroupRefunds');
             Route::get('/{item}', [EcsRefundController::class, 'show'])->name('show');
-//            Route::get('/{item}/edit', [EcsRefundController::class, 'edit'])->name('edit');
-//            Route::put('/{item}', [EcsRefundController::class, 'update'])->name('update');
-//            Route::delete('/{item}', [EcsRefundController::class, 'destroy'])->name('destroy');
+            //            Route::get('/{item}/edit', [EcsRefundController::class, 'edit'])->name('edit');
+            //            Route::put('/{item}', [EcsRefundController::class, 'update'])->name('update');
+            //            Route::delete('/{item}', [EcsRefundController::class, 'destroy'])->name('destroy');
         });
 
 
@@ -635,9 +654,9 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
             Route::get('/create', [EcsClientAccountSummaryController::class, 'create'])->middleware('permission:manage ecs client balances')->name('create');
             Route::post('/', [EcsClientAccountSummaryController::class, 'store'])->middleware('permission:manage ecs client balances')->name('store');
             Route::get('/{item}', [EcsClientAccountSummaryController::class, 'show'])->name('show');
-//            Route::get('/{item}/edit', [EcsClientAccountSummaryController::class, 'edit'])->name('edit');
-//            Route::put('/{item}', [EcsClientAccountSummaryController::class, 'update'])->name('update');
-//            Route::delete('/{item}', [EcsClientAccountSummaryController::class, 'destroy'])->name('destroy');
+            //            Route::get('/{item}/edit', [EcsClientAccountSummaryController::class, 'edit'])->name('edit');
+            //            Route::put('/{item}', [EcsClientAccountSummaryController::class, 'update'])->name('update');
+            //            Route::delete('/{item}', [EcsClientAccountSummaryController::class, 'destroy'])->name('destroy');
         });
     });
 
@@ -650,10 +669,16 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::get('bookings', [EcsExternalClientController::class, 'bookings'])->name('clientBookings');
         Route::post('approve-trx/{ecs_summary}', [EcsExternalClientController::class, 'approveTrx'])->name('approveTrx');
         Route::post('dispute-trx/{ecs_summary}', [EcsExternalClientController::class, 'disputeTrx'])->name('disputeTrx');
+
+        Route::post('approve-flt-trx/{ecs_trx}', [EcsExternalClientController::class, 'approveFlightTrx'])->name('approveFlightTrx');
+        Route::post('dispute-flt-trx/{ecs_trx}', [EcsExternalClientController::class, 'disputeFlightTrx'])->name('disputeFlightTrx');
+
+        Route::get('/trx-requests', [EcsExternalClientController::class, 'index'])->name('clientTrxs');
+        Route::get('/ticket-log', [EcsExternalClientController::class, 'ticketLogForClient'])->name('ticketLog');
     });
 
-    Route::prefix('staff_travel_beneficiaries')->name('staff_travel_beneficiaries.')->group(function () {
-        Route::get('/', [StaffTravelBeneficiaryController::class, 'index'])->name('index');
+    Route::prefix('staff_travel_beneficiaries')->name('staff_travel_beneficiaries.')->group(function (){
+           Route::get('/', [StaffTravelBeneficiaryController::class, 'index'])->name('index');
         Route::get('/pending', [StaffTravelBeneficiaryController::class, 'pendingBeneficiaries'])->name('pending');
         Route::get('/mine', [StaffTravelBeneficiaryController::class, 'indexMine'])->name('index.mine');
         Route::get('/create', [StaffTravelBeneficiaryController::class, 'create'])->name('create');
@@ -668,12 +693,12 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
 
     Route::prefix('stb_login_logs')->name('stb_login_logs.')->group(function () {
         Route::get('/', [StbLoginLogController::class, 'index'])->name('index');
-//        Route::get('/create', [StbLoginLogController::class, 'create'])->name('create');
-//        Route::post('/', [StbLoginLogController::class, 'store'])->name('store');
-//        Route::get('/{item}', [StbLoginLogController::class, 'show'])->name('show');
-//        Route::get('/{item}/edit', [StbLoginLogController::class, 'edit'])->name('edit');
-//        Route::put('/{item}', [StbLoginLogController::class, 'update'])->name('update');
-//        Route::delete('/{item}', [StbLoginLogController::class, 'destroy'])->name('destroy');
+        //        Route::get('/create', [StbLoginLogController::class, 'create'])->name('create');
+        //        Route::post('/', [StbLoginLogController::class, 'store'])->name('store');
+        //        Route::get('/{item}', [StbLoginLogController::class, 'show'])->name('show');
+        //        Route::get('/{item}/edit', [StbLoginLogController::class, 'edit'])->name('edit');
+        //        Route::put('/{item}', [StbLoginLogController::class, 'update'])->name('update');
+        //        Route::delete('/{item}', [StbLoginLogController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('service_now_group_agents')->name('service_now_group_agents.')->group(function () {
@@ -696,6 +721,10 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::delete('/{item}', [ServiceNowGroupViewerController::class, 'destroy'])->name('destroy');
     });
 
+    Route::prefix('external_lawyer')->name('external_lawyer.')->group(function () {
+        Route::get('documents', [LegalExternalLawyerController::class, 'index'])->name('documents');
+    });
+
     Route::prefix('legal_team_external_lawyers')->name('legal_team_external_lawyers.')->group(function () {
         Route::get('/', [LegalTeamExternalLawyerController::class, 'index'])->name('index');
         Route::get('/create', [LegalTeamExternalLawyerController::class, 'create'])->name('create');
@@ -711,7 +740,7 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::post('/',      [LegalTeamFolderAjaxController::class, 'store'])->name('store');
         Route::get('/{id}',   [LegalTeamFolderAjaxController::class, 'show'])->name('show');
         Route::put('/{id}',   [LegalTeamFolderAjaxController::class, 'update'])->name('update');
-        Route::delete('/{id}',[LegalTeamFolderAjaxController::class, 'destroy'])->name('destroy');
+        Route::delete('/{id}', [LegalTeamFolderAjaxController::class, 'destroy'])->name('destroy');
         route::post('access_tfm_test', [LegalTeamFolderAjaxController::class, 'fileManagerLink'])->name('fileManagerLink');
 
         Route::post('upload', [LegalTeamFolderAjaxController::class, 'fileUpload'])->name('fileUpload');
@@ -721,45 +750,73 @@ Route::view('network-outage-analysis', 'frontend.network-outage-analyzer')->name
         Route::get('/',       [LegalTeamFolderAccessAjaxController::class, 'index'])->name('index');
         Route::post('/',      [LegalTeamFolderAccessAjaxController::class, 'store'])->name('store');
         Route::put('/{id}',   [LegalTeamFolderAccessAjaxController::class, 'update'])->name('update');
-        Route::delete('/{id}',[LegalTeamFolderAccessAjaxController::class, 'destroy'])->name('destroy');
+        Route::delete('/{id}', [LegalTeamFolderAccessAjaxController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('legal_team_documents')->name('legal_team_documents.')->group(function () {
         Route::get('/', [LegalTeamDocumentController::class, 'index'])->name('index');
         Route::get('/create', [LegalTeamDocumentController::class, 'create'])->name('create');
         Route::post('/', [LegalTeamDocumentController::class, 'store'])->name('store');
+        Route::post('/download-zip', [LegalTeamDocumentController::class, 'downloadZip'])->name('download_zip');
         Route::get('/{item}', [LegalTeamDocumentController::class, 'show'])->name('show');
         Route::get('/{item}/edit', [LegalTeamDocumentController::class, 'edit'])->name('edit');
         Route::put('/{item}', [LegalTeamDocumentController::class, 'update'])->name('update');
         Route::delete('/{item}', [LegalTeamDocumentController::class, 'destroy'])->name('destroy');
+    });
 
+    Route::prefix('legal_team_cases')->name('legal_team_cases.')->group(function () {
+        Route::get('/',       [LegalTeamCasesAjaxController::class, 'index'])->name('index');
+        Route::post('/',      [LegalTeamCasesAjaxController::class, 'store'])->name('store');
+        Route::put('/{id}',   [LegalTeamCasesAjaxController::class, 'update'])->name('update');
+        Route::delete('/{id}', [LegalTeamCasesAjaxController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('icu_activities')->name('icu_activities.')->middleware(['permission:can enter icu activities'])->group(function () {
         Route::get('/',       [IcuActivityAjaxController::class, 'index'])->name('index');
+        Route::get('/{id}',       [IcuActivityAjaxController::class, 'edit'])->name('edit');
         Route::post('/',      [IcuActivityAjaxController::class, 'store'])->name('store');
         Route::put('/{id}',   [IcuActivityAjaxController::class, 'update'])->name('update');
-        Route::delete('/{id}',[IcuActivityAjaxController::class, 'destroy'])->name('destroy');
+        Route::delete('/{id}', [IcuActivityAjaxController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('exchange_rates')->name('exchange_rates.')->middleware(['permission:can enter icu activities'])->group(function () {
         Route::get('/',       [ExchangeRateAjaxController::class, 'index'])->name('index');
         Route::post('/',      [ExchangeRateAjaxController::class, 'store'])->name('store');
+        Route::post('/rollover', [ExchangeRateAjaxController::class, 'rollover'])->name('rollover');
         Route::put('/{id}',   [ExchangeRateAjaxController::class, 'update'])->name('update');
-        Route::delete('/{id}',[ExchangeRateAjaxController::class, 'destroy'])->name('destroy');
+        Route::delete('/{id}', [ExchangeRateAjaxController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('external_vendors')->name('external_vendors.')->group(function () {
         Route::get('/',       [ExternalVendorAjaxController::class, 'index'])->name('index');
         Route::post('/',      [ExternalVendorAjaxController::class, 'store'])->name('store');
         Route::put('/{id}',   [ExternalVendorAjaxController::class, 'update'])->name('update');
-        Route::delete('/{id}',[ExternalVendorAjaxController::class, 'destroy'])->name('destroy');
+        Route::delete('/{id}', [ExternalVendorAjaxController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('qa_letter')->name('qa_letter.')->group(function () {
         Route::get('/',       [QaLetterAjaxController::class, 'index'])->name('index');
         Route::post('/',      [QaLetterAjaxController::class, 'store'])->name('store');
         Route::put('/{id}',   [QaLetterAjaxController::class, 'update'])->name('update');
-        Route::delete('/{id}',[QaLetterAjaxController::class, 'destroy'])->name('destroy');
+        Route::delete('/{id}', [QaLetterAjaxController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('qa_categories')->name('qa_categories.')->group(function () {
+        Route::get('/',       [QaCategoryAjaxController::class, 'index'])->name('index');
+        Route::post('/',      [QaCategoryAjaxController::class, 'store'])->name('store');
+        Route::put('/{id}',   [QaCategoryAjaxController::class, 'update'])->name('update');
+        Route::delete('/{id}', [QaCategoryAjaxController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('avsec_vehicles')->name('avsec_vehicles.')->group(function () {
+        Route::get('/', [AvsecVehicleController::class, 'index'])->name('index');
+        Route::get('/create', [AvsecVehicleController::class, 'create'])->name('create');
+        Route::post('/', [AvsecVehicleController::class, 'store'])->name('store');
+        Route::get('/{item}', [AvsecVehicleController::class, 'show'])->name('show');
+        Route::get('/{item}/edit', [AvsecVehicleController::class, 'edit'])->name('edit');
+        Route::put('/{item}', [AvsecVehicleController::class, 'update'])->name('update');
+        Route::post('/{item}/approve', [AvsecVehicleController::class, 'approve'])->name('approve');
+        Route::post('/{item}/disapprove', [AvsecVehicleController::class, 'disapprove'])->name('disapprove');
+        Route::delete('/{item}', [AvsecVehicleController::class, 'destroy'])->name('destroy');
     });
 });

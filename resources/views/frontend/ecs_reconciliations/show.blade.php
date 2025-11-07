@@ -12,7 +12,7 @@
                     <h3 class="card-title">Reconciliation Details</h3>
                 </div>
                 <div class="card-body">
-                    <p><strong>For Date:</strong> {{ $item->for_date }}</p>
+                    <p><strong>For Date:</strong> {{ $item->for_date->toDateString() }}</p>
 <p><strong>ECS Sales Amount:</strong> {{ checkIntNumber($item->ecs_sales_amount) }}</p>
 <p><strong>IBE Sales Amount:</strong> {{ checkIntNumber($item->ibe_sales_amount) }}</p>
 <p><strong>Amounts Difference:</strong> {{ checkIntNumber($item->amounts_difference) }}</p>

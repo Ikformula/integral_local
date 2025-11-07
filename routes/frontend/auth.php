@@ -41,6 +41,7 @@ Route::group(['namespace' => 'Auth', 'as' => 'auth.'], function () {
 
         // Registration Routes
         Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+        Route::get('lawyer-reg', [RegisterController::class, 'showExtLawyerRegistrationForm'])->name('lawyer.register');
         Route::post('register', [RegisterController::class, 'register'])->name('register.post');
 
         // Confirm Account Routes

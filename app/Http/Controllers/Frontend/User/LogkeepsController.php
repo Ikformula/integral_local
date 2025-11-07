@@ -19,7 +19,7 @@ class LogkeepsController extends Controller
 
     public function logstream(Erp $erp)
     {
-        $logs = Logkeep::where('erp_id', $erp->id)->get();
+        $logs = Logkeep::where('erp_id', $erp->id)->latest()->get();
         return view('frontend.erps.log_keeping.logstream')->with([
             'erp' => $erp,
             'logkeeps' => $logs->reverse(),
@@ -70,9 +70,7 @@ class LogkeepsController extends Controller
 
         $logs = Logkeep::where('erp_id', $erp->id)
             ->where('id', '>', $last_log_id)
-            // ->orderBy('created_at', 'desc')
             ->get();
-
         return response()->json($logs);
     }
 }

@@ -72,7 +72,8 @@ class EcsRefundController extends Controller
 
                 $refund = EcsRefund::create($arr);
 
-                $this->addTransactionSummary($refund->client_idRelation, $refund->amount_refundable, $refund);
+                // Push to Summaries
+                $this->addTransactionSummary($refund->client_idRelation, $refund->amount_refundable, $refund, 'CREDIT');
             }
         }
 

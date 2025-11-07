@@ -135,6 +135,7 @@ class UserController extends Controller
             $lawyer->user_id = $user->id;
             $lawyer->save();
 
+            $user->assignRole('External Lawyer');
             return redirect()->route('frontend.legal_team_external_lawyers.index')->withFlashSuccess('External Lawyer User Account Created');
         }
 

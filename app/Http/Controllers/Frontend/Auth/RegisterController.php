@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend\Auth;
 use App\Events\Frontend\Auth\UserRegistered;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Frontend\Auth\RegisterRequest;
+use App\Models\LegalTeamExternalLawyer;
 use App\Repositories\Frontend\Auth\UserRepository;
 use Illuminate\Foundation\Auth\RegistersUsers;
 
@@ -52,6 +53,13 @@ class RegisterController extends Controller
         return view('frontend.auth.register');
     }
 
+    public function showExtLawyerRegistrationForm()
+    {
+//        abort_unless(config('access.registration'), 404);
+
+        return view('frontend.auth.external-lawyers-reg');
+    }
+
     /**
      * @param RegisterRequest $request
      *
@@ -60,9 +68,19 @@ class RegisterController extends Controller
      */
     public function register(RegisterRequest $request)
     {
-        abort_unless(config('access.registration'), 404);
+//        abort_unless(config('access.registration'), 404);
 
         $user = $this->userRepository->create($request->only('first_name', 'last_name', 'email', 'password'));
+
+        if($request->filled('firm')){
+            $lawyer = new LegalTeamExternalLawyer();
+            $lawyer->firm = $request->firm;
+            $lawyer->principal_partner_contact = $request->principal_partner_contact;
+            $lawyer->user_id = $user->id;
+            $lawyer->save();
+
+            $user->assignRole('External Lawyer');
+        }
 
         // If the user must confirm their email or their account requires approval,
         // create the account but don't log them in.

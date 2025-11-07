@@ -21,6 +21,8 @@
                         {{--                    <a href="#" class="text-white">Last update 2 mins ago</a>--}}
                     </div>
                 </div>
+
+                @include('frontend.ecs_reconciliations._create-form')
             </div><!--col-->
 
             <div class="col">
@@ -35,13 +37,13 @@
                         </div>
                     @endforeach
                 </div>
-                <div class="row">
-                    @foreach($stats_numbers as $key)
-                        <div class="col">
-                        @include('frontend.components.dashboard_stat_widget', ['title' => ucfirst(str_replace('_', ' ', $key)), 'slot' => number_format($numbers[$key])])
-                        </div>
-                    @endforeach
-                </div>
+{{--                <div class="row">--}}
+{{--                    @foreach($stats_numbers as $key)--}}
+{{--                        <div class="col">--}}
+{{--                        @include('frontend.components.dashboard_stat_widget', ['title' => ucfirst(str_replace('_', ' ', $key)), 'slot' => number_format($numbers[$key])])--}}
+{{--                        </div>--}}
+{{--                    @endforeach--}}
+{{--                </div>--}}
 
                 <form action="" method="get">
                     <div class="card">
@@ -97,50 +99,47 @@
                         </div>
                     </div>
                 </form>
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Recent Reconciliations</h3>
+                                <div class="card-tools">
+                                    <a href="{{ route('frontend.ecs_reconciliations.index') }}" class="btn btn-primary">View All Reconciliations</a>
 
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                @include('frontend.ecs_reconciliations._table', ['items' => $reconciliations])
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-header bg-warning">
+                                <h3 class="card-title">Links</h3>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <a href="{{ route('frontend.ecs_clients.index') }}" class="list-group-item list-group-item-action">
+                                        <i class="fa fa-arrow-alt-circle-right"></i> Clients
+                                    </a>
+                                    <a href="{{ route('frontend.ecs_flight_transactions.index', ['filter' => 'view']) }}" class="list-group-item list-group-item-action"><i class="fa fa-arrow-alt-circle-right"></i> Requests</a>
+                                    <a href="{{ route('frontend.ecs_client_account_summaries.index') }}" class="list-group-item list-group-item-action"><i class="fa fa-arrow-alt-circle-right"></i> Account Summaries</a>
+                                    <a href="{{ route('frontend.ecs_flight_transactions.index', ['filter' => 'refunds']) }}" class="list-group-item list-group-item-action"><i class="fa fa-arrow-alt-circle-right"></i> Refunds</a>
+                                    <a href="{{ route('frontend.ecs_reconciliations.index') }}" class="list-group-item list-group-item-action"><i class="fa fa-arrow-alt-circle-right"></i> Reconciliations</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div><!--row-->
 
 
-        <div class="row">
-            <div class="col-md-4">
-                @include('frontend.ecs_reconciliations._create-form')
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Recent Reconciliations</h3>
-                        <div class="card-tools">
-                            <a href="{{ route('frontend.ecs_reconciliations.index') }}" class="btn btn-primary">View All Reconciliations</a>
 
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        @include('frontend.ecs_reconciliations._table', ['items' => $reconciliations])
-                    </div>
-                </div>
-            </div>
-
-            <div class="col">
-                <div class="card">
-                  <div class="card-header bg-warning">
-                      <h3 class="card-title">Links</h3>
-                  </div>
-                  <div class="card-body p-0">
-                      <div class="list-group list-group-flush">
-                          <a href="{{ route('frontend.ecs_clients.index') }}" class="list-group-item list-group-item-action">
-                              <i class="fa fa-arrow-alt-circle-right"></i> Clients
-                          </a>
-                          <a href="{{ route('frontend.ecs_bookings.index') }}" class="list-group-item list-group-item-action"><i class="fa fa-arrow-alt-circle-right"></i> Bookings</a>
-                          <a href="{{ route('frontend.ecs_client_account_summaries.index') }}" class="list-group-item list-group-item-action"><i class="fa fa-arrow-alt-circle-right"></i> Account Summaries</a>
-                          <a href="{{ route('frontend.ecs_refunds.index') }}" class="list-group-item list-group-item-action"><i class="fa fa-arrow-alt-circle-right"></i> Refunds</a>
-                          <a href="{{ route('frontend.ecs_reconciliations.index') }}" class="list-group-item list-group-item-action"><i class="fa fa-arrow-alt-circle-right"></i> Reconciliations</a>
-                      </div>
-                  </div>
-                </div>
-
-            </div>
-        </div>
 
     </div>
 @endsection

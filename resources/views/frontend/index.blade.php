@@ -9,8 +9,8 @@
     <div class="row mb-4">
         <div class="col">
             <div class="card mb-2 bg-gradient-dark">
-                <img class="card-img-top rounded d-md-none" src="https://res.cloudinary.com/anya-ng/image/upload/v1750252570/Arik-plane_thhnnw.jpg" alt="Bg Welcome Image">
-                <img class="card-img-top rounded d-none d-md-block" src="https://res.cloudinary.com/anya-ng/image/upload/v1750252570/Arik-plane_thhnnw.jpg" alt="Bg Welcome Image">
+                <img class="card-img-top rounded d-md-none" src="{{ asset('img/frontend/airplane-wing-md.jpg') }}" alt="Bg Welcome Image">
+                <img class="card-img-top rounded d-none d-md-block" src="{{ asset('img/frontend/airplane-wing-md.jpg') }}" alt="Bg Welcome Image">
                 <div class="card-img-overlay d-flex flex-column justify-content-end">
                     <h5 class="card-title text-primary text-white">Welcome,</h5>
                     <p class="card-text text-white pb-2 pt-1">{{ $logged_in_user->name }}</p>

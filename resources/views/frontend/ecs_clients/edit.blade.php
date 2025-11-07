@@ -64,6 +64,33 @@
                             @endforeach
                         </div>
 
+                        <h5>Applicable Additional Fees</h5>
+                        <div class="row">
+                            @foreach($additional_fees as $fee)
+                                <div class="col-sm-6">
+                                    <!-- checkbox -->
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="fee_columns[]" value="{{ $fee }}" {{ $ecs_client->fees() && in_array($fee, $ecs_client->fees()) ? 'checked' : '' }}>
+                                            <label class="form-check-label">{{ unSlug($fee) }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <!-- checkbox -->
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="select_category" value="{{ $ecs_client->select_category ? '1' : '0'}}" {{ $ecs_client->select_category == 1 ? 'checked' : '' }}>
+                                        <label class="form-check-label">Require Category</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <button type="submit" class="btn btn-primary">Update</button>
                         <a href="{{ route('frontend.ecs_clients.index') }}" class="btn btn-secondary">Cancel</a>
                     </form>

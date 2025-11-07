@@ -88,10 +88,10 @@ class SRBController extends Controller
         // Find or create a new target record for the metric and year
         $metricTarget = SpiMetricTarget::updateOrCreate(
             [
-            'spi_metric_id' => $validated['metric_id'],
-            'from_date' => $fromDate,
-            'to_date' => $toDate,
-            'year' => $validated['year'],
+                'spi_metric_id' => $validated['metric_id'],
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'year' => $validated['year'],
             ],
             [
                 $request->target_colour_direction => $request->input($request->target_colour_direction)
@@ -141,19 +141,18 @@ class SRBController extends Controller
     {
         $validated = $request->validate([
             'metric_id' => 'required|exists:spi_metrics,id'
-            ]);
+        ]);
 
         $metric = SpiMetric::find($validated['metric_id']);
         $metric->is_centrik_item = !isset($metric->is_centrik_item) ? 1 : null;
         $metric->save();
 
         return response()->json(['success' => true, 'message' => 'Metric Centrik Status updated successfully.', 'is_centrik' => $metric->is_centrik_item]);
-
     }
 
     public function canAccessSector($user_id, $sector_id)
     {
-        if(DB::table('spi_sector_user_permissions')->where('user_id', $user_id)->where('sector_id', $sector_id)->count() || auth()->user()->isAdmin())
+        if (DB::table('spi_sector_user_permissions')->where('user_id', $user_id)->where('sector_id', $sector_id)->count() || auth()->user()->isAdmin())
             return true;
         return false;
     }
@@ -161,7 +160,7 @@ class SRBController extends Controller
     public function reportEntry(Request $request)
     {
         $user = auth()->user();
-        if(!$user->spi_sectors()->count() && !$user->isAdmin())
+        if (!$user->spi_sectors()->count() && !$user->isAdmin())
             return redirect()->back()->withErrors('Unauthorized');
 
         $request->validate([
@@ -175,12 +174,30 @@ class SRBController extends Controller
 
         $for_date = Carbon::parse($request->input('for_date', now()));
 
+        // Get entries for the selected date (if any) within the user's sectors
         $spi_metric_entries = SpiMetricEntry::whereHas('metric.indicator.objective.sector', function ($query) use ($sector_ids) {
             $query->whereIn('id', $sector_ids);
         })->where('for_date', $for_date)
             ->get();
 
-        return view('frontend.spi.data_entry', compact('sectors', 'for_date', 'spi_metric_entries'));
+        // Compute list of distinct dates (for_date) that have at least one entry for the user's sectors
+        // limited to the past 1 year from today
+        $oneYearAgo = Carbon::now()->subYear()->startOfDay();
+
+        $availableDates = SpiMetricEntry::whereHas('metric.indicator.objective.sector', function ($query) use ($sector_ids) {
+            $query->whereIn('id', $sector_ids);
+        })
+            ->where('for_date', '>=', $oneYearAgo)
+            ->distinct()
+            ->orderBy('for_date', 'desc')
+            ->pluck('for_date')
+            ->map(function ($d) {
+                return Carbon::parse($d)->toDateString();
+            })
+            ->unique()
+            ->values();
+
+        return view('frontend.spi.data_entry', compact('sectors', 'for_date', 'spi_metric_entries', 'availableDates'));
     }
 
     public function storeMetricEntry(Request $request)
@@ -201,14 +218,14 @@ class SRBController extends Controller
         $entryData = $validated['parameters'];
         $rawJsonEntryData = json_encode($entryData);
 
-        logger($entryData);
+//        logger($entryData);
         // Calculate the amount based on the formula or default to first parameter
         $amount = $this->calculateAmount($formula, $entryData);
 
         $for_date = Carbon::parse($validated['for_date']);
         $metric_target = $metric->targets->where('year', $for_date->year)->first();
         $colour = null;
-        if($metric_target){
+        if ($metric_target) {
             $colour = $this->computeColour($amount, $metric_target);
         }
 
@@ -239,7 +256,7 @@ class SRBController extends Controller
             ]
         );
 
-// Update quarterly performance
+        // Update quarterly performance
         $this->updateQuarterlyPerformance([
             'for_date' => $validated['for_date'],
             'entry_data' => $rawJsonEntryData,
@@ -251,7 +268,41 @@ class SRBController extends Controller
 
 
 
-        return response()->json(['success' => true, 'message' => 'Entry saved successfully! value: '.$amount, 'entry' => $entry, 'amount' => $amount]);
+        return response()->json(['success' => true, 'message' => 'Entry saved successfully! value: ' . $amount, 'entry' => $entry, 'amount' => $amount]);
+    }
+
+    /**
+     * Delete a metric entry and update quarterly performance accordingly.
+     */
+    public function deleteMetricEntry(Request $request)
+    {
+        $validated = $request->validate([
+            'entry_id' => 'required|exists:spi_metric_entries,id'
+        ]);
+
+        $entry = SpiMetricEntry::find($validated['entry_id']);
+        if (!$entry) {
+            return response()->json(['success' => false, 'message' => 'Entry not found'], 404);
+        }
+
+        // Capture data for quarterly recalculation
+        $metric = $entry->metric;
+        $forDate = $entry->for_date;
+
+        // Delete the entry
+        $entry->delete();
+
+        // Recompute quarterly performance for the metric
+        $this->updateQuarterlyPerformance([
+            'for_date' => $forDate,
+            'entry_data' => null,
+            'old_entry_data' => null,
+            'is_update' => true,
+            'spi_metric_target_id' => 0,
+            'user_id' => auth()->id(),
+        ], $metric);
+
+        return response()->json(['success' => true, 'message' => 'Entry deleted and quarterly performance updated']);
     }
 
     private function calculateAmount($formula, $entryData)
@@ -303,10 +354,19 @@ class SRBController extends Controller
             ->where('quarter_number', $quarterNumber)
             ->where('year', $year)
             ->get();
+
+        if(!$quarter_entries || !$quarter_entries->count()){
+            SpiQuarterlyPerformance::where('spi_metric_id', $metric->id)
+            ->where('quarter_number', $quarterNumber)
+                ->where('year', $year)
+                ->delete();
+            return null;
+        }
+
         $sum_amounts = $quarter_entries->sum('amount');
         $calculatedAmount = $sum_amounts;
 
-        if(in_array($metric->unit, ['percentage', 'rate'])){
+        if (in_array($metric->unit, ['percentage', 'rate']) && $quarter_entries->count()) {
             $calculatedAmount = $sum_amounts / $quarter_entries->count();
         }
 
@@ -317,13 +377,13 @@ class SRBController extends Controller
             'quarter_number' => $quarterNumber,
         ]);
 
-        if($entry['spi_metric_target_id'] && $calculatedAmount){
+        if ($entry['spi_metric_target_id'] && $calculatedAmount) {
             $metric_target = SpiMetricTarget::find($entry['spi_metric_target_id']);
             $colour = $this->computeColour($calculatedAmount, $metric_target);
         }
 
         // Update the quarterly performance record
-//        $quarterlyPerformance->entry_data = json_encode($currentEntryData);
+        //        $quarterlyPerformance->entry_data = json_encode($currentEntryData);
         $quarterlyPerformance->amount = $calculatedAmount;
         $quarterlyPerformance->spi_metric_target_id = $entry['spi_metric_target_id'] ?? 0;
         $quarterlyPerformance->user_id = $entry['user_id'];
@@ -342,7 +402,7 @@ class SRBController extends Controller
             ->where('quarter_number', $quarterNumber)
             ->count();
 
-                if($num_metrics){
+        if ($num_metrics) {
             $effective_metric_target = $effective_implmntxn_metric->targets->where('year', $year)->first();
             $perc_effective_implmntxn = round(($num_recorded_for_quarter / $num_metrics) * 100, 2);
 
@@ -386,8 +446,8 @@ class SRBController extends Controller
             $left = $target->{$limits[0]};
             $right = $target->{$limits[1]};
 
-            if($this->inRange($amount, $left, $right)){
-                logger("Colour: $colours[$index]");
+            if ($this->inRange($amount, $left, $right)) {
+//                logger("Colour: $colours[$index]");
                 return $colours[$index];
             }
         }
@@ -397,18 +457,17 @@ class SRBController extends Controller
 
     public function inRange($value, $left, $right)
     {
-        if(!is_numeric($value))
+        if (!is_numeric($value))
             return null;
 
-        if(is_numeric($left) && is_numeric($right)){
+        if (is_numeric($left) && is_numeric($right)) {
             $min = min([$left, $right]);
             $max = max([$left, $right]);
 
             return (($min <= $value) && ($value <= $max));
-
-        }elseif(in_array($left, ['LT', 'LTE', 'GT', 'GTE',]) && is_numeric($right)){
+        } elseif (in_array($left, ['LT', 'LTE', 'GT', 'GTE',]) && is_numeric($right)) {
             return $this->computeColourLtGt($value, $right, $left);
-        }elseif(in_array($right, ['LT', 'LTE', 'GT', 'GTE',]) && is_numeric($left)){
+        } elseif (in_array($right, ['LT', 'LTE', 'GT', 'GTE',]) && is_numeric($left)) {
             return $this->computeColourLtGt($value, $left, $right);
         }
         return false;
@@ -416,13 +475,13 @@ class SRBController extends Controller
 
     public function computeColourLtGt($value, $number_limit, $sign)
     {
-        if($sign == 'LT'){
+        if ($sign == 'LT') {
             return $value < $number_limit;
-        }elseif($sign == 'LTE'){
+        } elseif ($sign == 'LTE') {
             return $value <= $number_limit;
-        }elseif($sign == 'GT'){
+        } elseif ($sign == 'GT') {
             return $value > $number_limit;
-        }elseif($sign == 'GTE'){
+        } elseif ($sign == 'GTE') {
             return $value >= $number_limit;
         }
         return null;
@@ -475,7 +534,8 @@ class SRBController extends Controller
 
         $performances = SpiQuarterlyPerformance::where('year', $request->year)->get();
 
-        return view('frontend.spi.performance-report',
+        return view(
+            'frontend.spi.performance-report',
             compact('performances', 'sectors', 'metrics_count', 'data')
         )->with([
             'year' => $validated['year'],
@@ -593,5 +653,4 @@ class SRBController extends Controller
 
         return response()->json(['message' => 'Metric deleted successfully'], 200);
     }
-
 }

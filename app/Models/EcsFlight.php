@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 class EcsFlight extends Model
 {
     protected $fillable = [
-        'ecs_booking_id',
+        'ecs_transaction_id',
         'booking_reference',
         'flight',
         'class',

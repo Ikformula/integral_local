@@ -53,17 +53,17 @@ class IcuActivityAjaxController extends Controller
         if ($filters['trx_currency']) $query->where('trx_currency', $filters['trx_currency']);
         if ($filters['vendor_id']) $query->where('vendor_id', $filters['vendor_id']);
         if ($filters['beneficiary_staff_ara_id']) $query->where('beneficiary_staff_ara_id', $filters['beneficiary_staff_ara_id']);
-        if ($filters['min_amount']) $query->where(function($q) use ($filters) {
+        if ($filters['min_amount']) $query->where(function ($q) use ($filters) {
             $q->where('naira_amount', '>=', $filters['min_amount'])
-              ->orWhere('us_dollar_amount', '>=', $filters['min_amount'])
-              ->orWhere('euro_amount', '>=', $filters['min_amount'])
-              ->orWhere('gbp_amount', '>=', $filters['min_amount']);
+                ->orWhere('us_dollar_amount', '>=', $filters['min_amount'])
+                ->orWhere('euro_amount', '>=', $filters['min_amount'])
+                ->orWhere('gbp_amount', '>=', $filters['min_amount']);
         });
-        if ($filters['max_amount']) $query->where(function($q) use ($filters) {
+        if ($filters['max_amount']) $query->where(function ($q) use ($filters) {
             $q->where('naira_amount', '<=', $filters['max_amount'])
-              ->orWhere('us_dollar_amount', '<=', $filters['max_amount'])
-              ->orWhere('euro_amount', '<=', $filters['max_amount'])
-              ->orWhere('gbp_amount', '<=', $filters['max_amount']);
+                ->orWhere('us_dollar_amount', '<=', $filters['max_amount'])
+                ->orWhere('euro_amount', '<=', $filters['max_amount'])
+                ->orWhere('gbp_amount', '<=', $filters['max_amount']);
         });
 
         $icu_activities = $query->get();
@@ -83,17 +83,56 @@ class IcuActivityAjaxController extends Controller
         $departments = IcuActivity::select('department')->distinct()->pluck('department');
         $currencies = ['NGN', 'USD', 'EUR', 'GBP'];
 
+        // Top 10 vendors by resolved naira value in the filtered time range
+        $topVendorsRaw = IcuActivity::with('vendor_idRelation')
+            ->whereBetween('date_treated', [$filters['date_treated_from'], $filters['date_treated_to']])
+            ->get()
+            ->groupBy('vendor_id');
+
+        $topVendors = $topVendorsRaw->map(function ($items, $vendorId) {
+            $name = optional($items->first()->vendor_idRelation)->name ?? 'Unknown';
+            $total = $items->sum('naira_value');
+            return ['name' => $name, 'total' => round($total, 2)];
+        })->sortByDesc('total')->take(10)->values()->all();
+
         return view('frontend.icu_activities.index', compact(
-            'icu_activities', 'external_vendors', 'staff_members', 'categories', 'departments', 'currencies',
-            'filters', 'quarterLabel', 'total_count', 'total_naira', 'total_usd', 'total_euro', 'total_gbp', 'unique_vendors', 'unique_departments'
+            'icu_activities',
+            'external_vendors',
+            'staff_members',
+            'categories',
+            'departments',
+            'currencies',
+            'filters',
+            'quarterLabel',
+            'total_count',
+            'total_naira',
+            'total_usd',
+            'total_euro',
+            'total_gbp',
+            'unique_vendors',
+            'unique_departments',
+            'topVendors'
         ));
     }
+
+
 
     public function store(Request $request)
     {
         $arr = $request->all();
         $arr = $this->preArrange($request, $arr);
         $arr = $this->currencyValuesCalculator($arr);
+
+        // Calculate cost savings for each currency
+        $arr['cost_savings_naira'] = isset($arr['initial_naira_amount'], $arr['naira_amount']) ? ($arr['initial_naira_amount'] - $arr['naira_amount']) : null;
+        $arr['cost_savings_usd'] = isset($arr['initial_us_dollar_amount'], $arr['us_dollar_amount']) ? ($arr['initial_us_dollar_amount'] - $arr['us_dollar_amount']) : null;
+        $arr['cost_savings_euro'] = isset($arr['initial_euro_amount'], $arr['euro_amount']) ? ($arr['initial_euro_amount'] - $arr['euro_amount']) : null;
+        $arr['cost_savings_gbp'] = isset($arr['initial_gbp_amount'], $arr['gbp_amount']) ? ($arr['initial_gbp_amount'] - $arr['gbp_amount']) : null;
+
+        // Set status_changed_at if status is filled
+        if (!empty($arr['status'])) {
+            $arr['status_changed_at'] = now();
+        }
 
         IcuActivity::create($arr);
         return back()->withFlashSuccess('Internal Control Activity Report created successfully.');
@@ -104,14 +143,14 @@ class IcuActivityAjaxController extends Controller
     {
         $currencies = $this->currencies;
 
-        foreach ($currencies as $code => $currency){
-            if($request->has($currency['0'].'_amount')){
+        foreach ($currencies as $code => $currency) {
+            if ($request->has($currency['0'] . '_amount')) {
                 $arr['trx_currency'] = $code;
                 break;
             }
         }
 
-        if($request->filled('vendor_name')){
+        if ($request->filled('vendor_name')) {
             $vendor = ExternalVendor::firstOrCreate(
                 ['name' => $request->vendor_name]
             );
@@ -123,7 +162,8 @@ class IcuActivityAjaxController extends Controller
     }
 
 
-    protected function currencyValuesCalculator($arr){
+    protected function currencyValuesCalculator($arr)
+    {
         // Set currency values based on exchange rate for date treated
         if ($arr['date_treated'] ?? false) {
             $rate = ExchangeRate::where('from_date', '<=', $arr['date_treated'])
@@ -168,12 +208,37 @@ class IcuActivityAjaxController extends Controller
         return $arr;
     }
 
+    public function edit($id)
+    {
+        $icu_activitiesItem = IcuActivity::find($id);
+        $external_vendors = ExternalVendor::all();
+        $staff_members = StaffMember::all();
+        $categories = IcuActivity::select('category')->distinct()->pluck('category');
+        $departments = IcuActivity::select('department')->distinct()->pluck('department');
+        $currencies = ['NGN', 'USD', 'EUR', 'GBP'];
+        return view('frontend.icu_activities.edit', compact('icu_activitiesItem', 'external_vendors', 'staff_members', 'categories', 'departments', 'currencies'));
+    }
+
+
+
     public function update(Request $request, $id)
     {
         $arr = $request->all();
         $arr = $this->preArrange($request, $arr);
         $arr = $this->currencyValuesCalculator($arr);
+
+        // Calculate cost savings for each currency
+        $arr['cost_savings_naira'] = isset($arr['initial_naira_amount'], $arr['naira_amount']) ? ($arr['initial_naira_amount'] - $arr['naira_amount']) : null;
+        $arr['cost_savings_usd'] = isset($arr['initial_us_dollar_amount'], $arr['us_dollar_amount']) ? ($arr['initial_us_dollar_amount'] - $arr['us_dollar_amount']) : null;
+        $arr['cost_savings_euro'] = isset($arr['initial_euro_amount'], $arr['euro_amount']) ? ($arr['initial_euro_amount'] - $arr['euro_amount']) : null;
+        $arr['cost_savings_gbp'] = isset($arr['initial_gbp_amount'], $arr['gbp_amount']) ? ($arr['initial_gbp_amount'] - $arr['gbp_amount']) : null;
+
         $icu_activities = IcuActivity::findOrFail($id);
+        // Set status_changed_at if status is filled and changed
+        if (!empty($arr['status']) && $arr['status'] !== $icu_activities->status) {
+            $arr['status_changed_at'] = now();
+        }
+
         $icu_activities->update($arr);
         return back()->withFlashSuccess('Internal Control Activity Report updated successfully.');
     }

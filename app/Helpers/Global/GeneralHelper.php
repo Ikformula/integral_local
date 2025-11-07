@@ -722,3 +722,56 @@ if(!function_exists('checkIsJson')){
         return json_last_error() === JSON_ERROR_NONE;
     }
 }
+
+if(!function_exists('locations3letters')){
+    function locations3letters(){
+        return [
+            "ABB",
+            "ABJ",
+            "ABV",
+            "ACC",
+            "AKR",
+            "BCU",
+            "BJL",
+            "BNI",
+            "CBQ",
+            "COO",
+            "DKR",
+            "DLA",
+            "DXB",
+            "ENU",
+            "FNA",
+            "GMO",
+            "IBA",
+            "ILR",
+            "JFK",
+            "JNB",
+            "JOS",
+            "KAD",
+            "KAN",
+            "LAD",
+            "LBV",
+            "LHR",
+            "LOS",
+            "MIU",
+            "PHC",
+            "PHG",
+            "QOW",
+            "QRW",
+            "QUO",
+            "ROB",
+            "SKO",
+            "YOL"
+        ];
+    }
+
+    if(!function_exists('unSlug')) {
+        function unSlug($str)
+        {
+            // function to convert strings like 'no_show_fee' to 'No Show Fee'
+            $words = explode('_', $str);
+            $capitalizedWords = array_map('ucfirst', $words);
+            return implode(' ', $capitalizedWords);
+        }
+    }
+}

@@ -40,6 +40,11 @@ class EcsInternalDashController extends Controller
         return view('frontend.ecs_internal.index', compact('agents', 'clients', 'sales', 'numbers', 'stats_numbers', 'stats_sales', 'reconciliations', 'params'));
     }
 
+    public function ecsManual()
+    {
+        return view('frontend.ecs_internal.ecs-manual');
+    }
+
     public function ecsActivitiesLog()
     {
         $logs = UserActivityLog::with('user')

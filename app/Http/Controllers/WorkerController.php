@@ -172,14 +172,10 @@ class WorkerController extends Controller
             ['ijeoma.ike-okereke@arikair.com', 'Ma', [1], 'HR'],
             ['rasheed.lawal@arikair.com', 'Sir', [2], 'Ground Ops'],
             ['augustine.addy-lamptey@arikair.com', 'Sir', [3, 6], 'Flight Ops'],
-            ['babajide.oni@arikair.com', 'Sir', [3, 6], 'Flight Ops'],
             ['ailemen.arumemi-johnson@arikair.com', 'Sir', [4, 5, 7], 'Commercial'],
             ['john.nomnor@arikair.com', 'Sir', [9], 'I.T.'],
-            ['rasak.audu@arikair.com', 'Sir', [10], 'Internal Control'],
-//            ['paul.roomes@arikair.com', 'Sir', [11], 'Technical - Aircraft Status']
             ['stella.edomwonyi@arikair.com', 'Ma', [10], 'Internal Control'],
             ['emmanuel.balami@arikair.com', 'Sir', [11], 'Technical - Aircraft Status'],
-            ['roy.ilegbodu@arikair.com', 'Sir', [11], '']
         ];
 
         return $arr;
@@ -208,6 +204,12 @@ class WorkerController extends Controller
 //            $data['action_text'] = "Data Entry";
             $recipients = $this->BSCEmailRecipients()[$business_area_id];
             $data['to'] = $section[0];
+            if($section[3] == 'Flight Ops'){
+                $data['to'] = [$section[0], 'babajide.oni@arikair.com'];
+            }elseif ($section[3] == 'Internal Control'){
+                $data['to'] = [$section[0], 'rasak.audu@arikair.com'];
+            }
+
             if($section[3] == 'I.T.'){
                 $data['cc'] = ['kevin.erinjeri@arikair.com', 'ikechukwu.asuquo@arikair.com'];
             }else {

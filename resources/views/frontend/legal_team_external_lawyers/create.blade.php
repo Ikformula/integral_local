@@ -4,7 +4,7 @@
 @section('title', 'Add New External Lawyer')
 
 @section('content')
-<div class="container-fluid">
+<div class="container">
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -32,7 +32,12 @@
 
                         <div class="form-group">
                             <label for="firm">Firm</label>
-                            <input type="text" name="firm" id="firm" class="form-control" required>
+                            <input type="text" name="firm" id="firm" class="form-control" list="firm_list" required>
+                            <datalist id="firm_list">
+                                @foreach($firms as $firm)
+                                    <option>{{$firm}}</option>
+                                @endforeach
+                            </datalist>
                         </div>
 
                         <div class="form-group">
